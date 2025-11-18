@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduCloud - Perfil del Profesor</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* === Ajustes adicionales para los botones === */
+    .header-right {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .edit-mode-toggle, .logout-btn {
+      background: linear-gradient(135deg, #3b82f6, #1e3a8a);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-width: 150px;
+    }
+
+    .edit-mode-toggle:hover, .logout-btn:hover {
+      transform: translateY(-2px);
+      background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+    }
+
+    .logout-btn {
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+    }
+
+    .logout-btn:hover {
+      background: linear-gradient(135deg, #b91c1c, #ef4444);
+    }
+  </style>
+</head>
+<body class="profile" onload="loadProfileData()">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <button class="back-btn" onclick="goBack()">← Volver</button>
+      <h1>👤 Mi Perfil</h1>
+    </div>
+
+    <div class="header-right">
+      <button class="edit-mode-toggle" id="editToggle" onclick="toggleEditMode()">✏️ Editar Perfil</button>
+      <button class="logout-btn" onclick="cerrarSesion()">🚪 Cerrar Sesión</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="profile-card">
+      <div class="cover-image"></div>
+
+      <!-- Encabezado -->
+      <div class="profile-header">
+        <div class="avatar-container">
+          <div class="avatar" id="avatar" onclick="document.getElementById('avatarInput').click()">
+            <span id="avatarInitials">PR</span>
+            <img id="avatarImage" style="display:none;">
+          </div>
+          <div class="camera-overlay" onclick="document.getElementById('avatarInput').click()">📷</div>
+          <input type="file" id="avatarInput" accept="image/*" onchange="handleAvatarChange(event)">
+        </div>
+
+        <div class="profile-info-header">
+          <h2 class="profile-name" id="displayName">Profesor/a</h2>
+          <p class="profile-role" id="displayRole">Docente</p>
+          <div class="profile-badges">
+            <span class="badge badge-teacher" id="badgeRole">👩‍🏫 Docente</span>
+            <span class="badge badge-verified">✓ Verificado</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contenido -->
+      <div class="profile-content">
+        <!-- Información Personal -->
+        <div class="section">
+          <h3 class="section-title">📋 Información Personal</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Nombre Completo</div>
+              <div class="view-mode info-value" id="viewNombre">—</div>
+              <input type="text" class="edit-mode" id="editNombre" placeholder="Ej: María García">
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Correo Institucional</div>
+              <div class="view-mode info-value" id="viewEmail">—</div>
+              <input type="email" class="edit-mode" id="editEmail" placeholder="nombre@uni.edu">
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Teléfono</div>
+              <div class="view-mode info-value" id="viewTelefono">—</div>
+              <input type="tel" class="edit-mode" id="editTelefono" placeholder="+57 300 123 4567">
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Identificación</div>
+              <div class="view-mode info-value" id="viewIdentificacion">—</div>
+              <input type="text" class="edit-mode" id="editIdentificacion" placeholder="CC / Pasaporte">
+            </div>
+          </div>
+        </div>
+
+        <!-- Información Docente -->
+        <div class="section">
+          <h3 class="section-title">🎓 Información Docente</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Facultad</div>
+              <div class="view-mode info-value" id="viewFacultad">Ingeniería</div>
+              <select class="edit-mode" id="editFacultad">
+                <option value="Ingeniería" selected>Ingeniería</option>
+                <option value="Ciencias Sociales">Ciencias Sociales</option>
+                <option value="Ciencias Jurídicas">Ciencias Jurídicas</option>
+                <option value="Educación">Educación</option>
+              </select>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Departamento</div>
+              <div class="view-mode info-value" id="viewDepartamento">Sistemas</div>
+              <input type="text" class="edit-mode" id="editDepartamento" placeholder="Sistemas">
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Categoría</div>
+              <div class="view-mode info-value" id="viewCategoria">Tiempo Completo</div>
+              <select class="edit-mode" id="editCategoria">
+                <option value="Cátedra">Cátedra</option>
+                <option value="Medio Tiempo">Medio Tiempo</option>
+                <option value="Tiempo Completo" selected>Tiempo Completo</option>
+              </select>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Asignaturas</div>
+              <div class="view-mode info-value" id="viewAsignaturas">—</div>
+              <input type="text" class="edit-mode" id="editAsignaturas" placeholder="Ej: Sistemas Operativos; IO">
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Semestres que dicta</div>
+              <div class="view-mode info-value" id="viewSemestres">—</div>
+              <input type="text" class="edit-mode" id="editSemestres" placeholder="Ej: 5, 7">
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Oficina / Extensión</div>
+              <div class="view-mode info-value" id="viewOficina">—</div>
+              <input type="text" class="edit-mode" id="editOficina" placeholder="Bloque B, Of. 203 / Ext. 1234">
+            </div>
+          </div>
+        </div>
+
+        <!-- Bio -->
+        <div class="section">
+          <h3 class="section-title">📝 Biografía</h3>
+          <div class="info-item">
+            <div class="view-mode info-value" id="viewBio">—</div>
+            <textarea class="edit-mode" id="editBio" placeholder="Resumen de trayectoria, intereses, líneas de investigación..."></textarea>
+          </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="action-buttons edit-mode" style="display:none;">
+          <button class="btn-cancel" onclick="toggleEditMode()">Cancelar</button>
+          <button class="btn-save" onclick="saveProfile()">💾 Guardar Cambios</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function cerrarSesion(){
+      if(confirm("¿Seguro que deseas cerrar sesión?")){
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = "bienvenido.html";
+      }
+    }
+
+    function goBack(){
+      if (history.length > 1 && document.referrer) history.back();
+      else window.location.href = 'indice_profesor.html';
+    }
+
+    function toggleEditMode(){
+      document.body.classList.toggle('editing');
+      const isEditing = document.body.classList.contains('editing');
+      const actions = document.querySelector('.action-buttons');
+      if (actions) actions.style.display = isEditing ? 'flex' : 'none';
+    }
+
+    function loadProfileData(){
+      const s = JSON.parse(localStorage.getItem("educloud_prof_sess") || "{}");
+      const nombre = s.nombre || "Prof. María García";
+      const email = s.email || "maria.garcia@uni.edu";
+      const telefono = s.telefono || "";
+      const facultad = s.facultad || "Ingeniería";
+      const departamento = s.departamento || "Sistemas";
+      const categoria = s.categoria || "Tiempo Completo";
+      const asignaturas = s.asignaturas || "Sistemas Operativos; IO";
+      const bio = s.bio || "Docente con interés en innovación educativa.";
+
+      document.getElementById("displayName").textContent = nombre;
+      document.getElementById("viewNombre").textContent = nombre;
+      document.getElementById("editNombre").value = nombre;
+      document.getElementById("viewEmail").textContent = email;
+      document.getElementById("editEmail").value = email;
+      document.getElementById("viewTelefono").textContent = telefono;
+      document.getElementById("editTelefono").value = telefono;
+      document.getElementById("viewFacultad").textContent = facultad;
+      document.getElementById("editFacultad").value = facultad;
+      document.getElementById("viewDepartamento").textContent = departamento;
+      document.getElementById("editDepartamento").value = departamento;
+      document.getElementById("viewCategoria").textContent = categoria;
+      document.getElementById("editCategoria").value = categoria;
+      document.getElementById("viewAsignaturas").textContent = asignaturas;
+      document.getElementById("editAsignaturas").value = asignaturas;
+      document.getElementById("viewBio").textContent = bio;
+      document.getElementById("editBio").value = bio;
+
+      const initials = nombre.split(" ").map(w=>w[0]).join("").substring(0,2).toUpperCase();
+      document.getElementById("avatarInitials").textContent = initials;
+      const savedAvatar = localStorage.getItem("educloud_prof_avatar");
+      if (savedAvatar){
+        document.getElementById("avatarImage").src = savedAvatar;
+        document.getElementById("avatarImage").style.display = "block";
+        document.getElementById("avatarInitials").style.display = "none";
+      }
+    }
+
+    function saveProfile(){
+      const nombre = document.getElementById('editNombre').value.trim();
+      const email = document.getElementById('editEmail').value.trim();
+      if (!nombre || !email){ alert('Completa nombre y correo.'); return; }
+      const s = {
+        nombre,
+        email,
+        telefono: document.getElementById('editTelefono').value.trim(),
+        facultad: document.getElementById('editFacultad').value,
+        departamento: document.getElementById('editDepartamento').value.trim(),
+        categoria: document.getElementById('editCategoria').value,
+        asignaturas: document.getElementById('editAsignaturas').value.trim(),
+        bio: document.getElementById('editBio').value.trim()
+      };
+      localStorage.setItem('educloud_prof_sess', JSON.stringify(s));
+      alert("✅ Perfil actualizado correctamente");
+      document.body.classList.remove('editing');
+      loadProfileData();
+    }
+
+    function handleAvatarChange(event){
+      const file = event.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const avatarImage = document.getElementById('avatarImage');
+        const avatarInitials = document.getElementById('avatarInitials');
+        avatarImage.src = e.target.result;
+        avatarImage.style.display = 'block';
+        avatarInitials.style.display = 'none';
+        localStorage.setItem('educloud_prof_avatar', e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduCloud - Investigación de Operaciones</title>
+  <style>
+    :root {
+      --primary:#1e3a8a;
+      --accent:#3b82f6;
+      --ink:#0f172a;
+      --muted:#64748b;
+      --card:#ffffff;
+      --panel:#f8fafc;
+      --ring:#e5e7eb;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body {
+      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background:linear-gradient(135deg, var(--primary), var(--accent));
+      color:var(--ink);
+      min-height:100vh;
+    }
+    .wrap {
+      max-width: 980px; margin: 28px auto; padding: 0 16px 40px;
+    }
+    .top {
+      display:flex; justify-content:space-between; align-items:center;
+      color:#fff; margin-bottom:18px;
+    }
+    .top h1 { font-size:24px; font-weight:800; }
+    .back {
+      border:none; background:#fff; color:var(--primary);
+      padding:10px 16px; border-radius:12px; font-weight:700;
+      cursor:pointer; transition:.25s; box-shadow:0 6px 18px rgba(0,0,0,.15);
+    }
+    .back:hover { transform:translateX(-3px); background:#e0e7ff; }
+
+    .card {
+      background:var(--card);
+      border-radius:16px;
+      box-shadow:0 12px 32px rgba(0,0,0,.15);
+      overflow:hidden;
+    }
+
+    .section {
+      padding:18px 16px; border-top:1px solid var(--ring);
+    }
+    .section:first-child { border-top:none; }
+
+    .file-list {
+      display:grid; gap:12px;
+      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    }
+    .file-item {
+      background:#fff; border:1px solid var(--ring);
+      border-left:4px solid var(--accent); border-radius:12px;
+      padding:12px; display:flex; flex-direction:column; gap:6px;
+      transition:.2s;
+    }
+    .file-item:hover { transform:translateY(-2px); background:#f8fbff; }
+    .file-item h4 { font-size:15px; color:var(--primary); }
+    .meta { font-size:13px; color:var(--muted); }
+    .btn {
+      border:none; background:linear-gradient(135deg,var(--accent),var(--primary));
+      color:#fff; border-radius:10px; padding:8px 10px;
+      font-weight:700; font-size:13px; cursor:pointer;
+      box-shadow:0 6px 16px rgba(59,130,246,.35); transition:.2s;
+      width:max-content;
+    }
+    .btn:hover { transform:translateY(-2px); }
+    .empty {
+      background:#fff; border:1px dashed var(--ring);
+      border-radius:12px; padding:16px;
+      text-align:center; color:var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1>📘 Investigación de Operaciones</h1>
+      <button class="back" onclick="window.location.href='programas.html'">← Volver a Programas</button>
+    </div>
+
+    <div class="card">
+      <div class="section">
+        <h2 style="color:#1e3a8a;">Materiales del docente</h2>
+        <p style="color:#64748b; font-size:14px;">Aquí se muestran los documentos subidos para esta asignatura.</p>
+      </div>
+
+      <div class="section">
+        <div id="empty" class="empty">No hay documentos disponibles para esta materia.</div>
+        <div id="files" class="file-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Clave de almacenamiento específica para esta materia
+    const MATERIA_KEY = 'IO_docs'; // IO = Investigación de Operaciones
+
+    // Leer documentos guardados (por los docentes)
+    const readDocs = () => {
+      try { return JSON.parse(localStorage.getItem(MATERIA_KEY) || '[]'); }
+      catch { return []; }
+    };
+
+    // Renderizar lista de archivos
+    function renderDocs() {
+      const files = readDocs();
+      const list = document.getElementById('files');
+      const empty = document.getElementById('empty');
+
+      list.innerHTML = '';
+      if (files.length === 0) {
+        empty.style.display = 'block';
+        list.style.display = 'none';
+        return;
+      }
+
+      empty.style.display = 'none';
+      list.style.display = 'grid';
+
+      files.forEach(file => {
+        const div = document.createElement('div');
+        div.className = 'file-item';
+        div.innerHTML = `
+          <h4>${file.nombre || '(sin título)'}</h4>
+          <div class="meta">Subido el ${new Date(file.fecha || Date.now()).toLocaleDateString()}</div>
+          <button class="btn" onclick="window.open('${file.url || '#'}','_blank')">📂 Ver documento</button>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', renderDocs);
+  </script>
+</body>
+</html>

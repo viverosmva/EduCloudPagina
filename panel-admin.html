@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduCloud - Panel Admin</title>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body onload="protectPage('admin'); initUploader();">
+  <!-- Barra Superior -->
+  <div class="top-bar">
+    <div class="logo-small">
+      <div class="logo-icon">☁️</div>
+      <span>EduCloud</span>
+    </div>
+    <div class="user-section" onclick="window.location='perfil.html'">
+      <div class="user-info">
+        <h3 id="adminName">Admin (Sesión)</h3>
+        <p>🛡️ Super Admin</p>
+      </div>
+      <div class="user-avatar">🛡️</div>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <!-- Menú Lateral -->
+    <div class="sidebar">
+      <div class="menu-item active" onclick="window.location='panel-admin.html'">
+        <span class="menu-icon">🏠</span>
+        <span>Inicio</span>
+      </div>
+      <div class="menu-item" onclick="window.location='indice_profesor.html'">
+        <span class="menu-icon">👨‍🏫</span>
+        <span>Vista Profesor</span>
+      </div>
+      <div class="menu-item" onclick="window.location='flashcard.html'">
+        <span class="menu-icon">🤖</span>
+        <span>IA Flashcards</span>
+      </div>
+      <div class="menu-item" onclick="alert('Próximamente: Usuarios');">
+        <span class="menu-icon">👥</span>
+        <span>Gestión de Usuarios</span>
+      </div>
+      <div class="menu-item" onclick="alert('Próximamente: Reportes');">
+        <span class="menu-icon">📈</span>
+        <span>Reportes</span>
+      </div>
+      <div class="menu-item" onclick="window.location='perfil.html'">
+        <span class="menu-icon">👤</span>
+        <span>Mi Perfil</span>
+      </div>
+      <button class="voice-button" onclick="activateVoice()">
+        🎤 Asistente por Voz
+      </button>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="content">
+      <div class="welcome-section">
+        <h1>Bienvenido, Admin 👋</h1>
+        <p>Controla roles, contenidos y procesa materiales con IA.</p>
+      </div>
+
+      <!-- Uploader (solo visible si rol permite) -->
+      <div id="uploaderBox" class="card" style="display:none; padding:20px; border-radius:20px;">
+        <h3 style="margin-bottom:10px;">📤 Subir Material (PDF/DOCX/PPTX)</h3>
+        <p style="color:#64748b; margin-bottom:12px;">Genera flashcards, examen simulado y resumen para compartir con docentes/estudiantes.</p>
+        <input id="fileInput" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx"/>
+        <button id="uploadBtn" class="voice-button" style="margin-top:12px;">Procesar con IA</button>
+        <div id="uploadStatus" style="margin-top:12px; color:#475569;"></div>
+      </div>
+
+      <!-- Tarjetas de acciones -->
+      <div class="cards-grid" style="margin-top:25px;">
+        <div class="card card-1" onclick="window.location='indice_profesor.html'">
+          <div class="card-icon">👨‍🏫</div>
+          <h3>Ir a Panel Profesor</h3>
+          <p>Ver cómo interactúa un docente con el contenido.</p>
+        </div>
+        <div class="card card-2" onclick="alert('Próximamente: Administración de roles');">
+          <div class="card-icon">🛂</div>
+          <h3>Roles y Permisos</h3>
+          <p>Asigna o revoca permisos a usuarios.</p>
+        </div>
+        <div class="card card-3" onclick="window.location='flashcard.html'">
+          <div class="card-icon">🤖</div>
+          <h3>Revisar Flashcards</h3>
+          <p>Audita y publica las tarjetas generadas por IA.</p>
+        </div>
+      </div>
+
+      <!-- Resumen de actividad -->
+      <div class="progress-widget" style="margin-top:25px;">
+        <h2>📊 Actividad Reciente</h2>
+        <div class="stat-item">
+          <div class="stat-label"><span class="stat-icon">📄</span><span>Archivos procesados (24h)</span></div>
+          <div class="stat-value" id="procCount">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label"><span class="stat-icon">🤖</span><span>Flashcards generadas</span></div>
+          <div class="stat-value" id="fcCount">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label"><span class="stat-icon">🧠</span><span>Exámenes creados</span></div>
+          <div class="stat-value" id="exCount">0</div>
+        </div>
+      </div>
+
+      <!-- Último Resumen -->
+      <div class="progress-widget" style="margin-top:25px;">
+        <h2>📝 Último Resumen Generado</h2>
+        <div id="lastSummary" style="color:#334155; line-height:1.7;">
+          (Aún no hay resumen. Sube un archivo para comenzar.)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+  <script>
+    (function(){
+      const s = getSession();
+      if (s?.nombre) document.getElementById('adminName').textContent = s.nombre;
+
+      // Simular métricas locales a partir de lo generado
+      const fcs = JSON.parse(localStorage.getItem('last_ai_flashcards')||'[]');
+      const exam = JSON.parse(localStorage.getItem('last_ai_exam')||'{}');
+      const sum = localStorage.getItem('last_ai_summary') || '';
+      document.getElementById('fcCount').textContent = fcs.length || 0;
+      document.getElementById('exCount').textContent = (exam.questions?.length ? 1 : 0);
+      document.getElementById('procCount').textContent = (fcs.length || exam.questions?.length ? 1 : 0);
+      if (sum) document.getElementById('lastSummary').textContent = sum;
+    })();
+
+    function activateVoice() {
+      const command = prompt('🎤 Comando (ej: "Subir archivo", "Ver flashcards")');
+      if (!command) return;
+      const c = command.toLowerCase();
+      if (c.includes('flashcard')) window.location='flashcard.html';
+      else if (c.includes('profe')) window.location='indice_profesor.html';
+      else if (c.includes('subir')) document.getElementById('fileInput')?.click();
+      else alert('Prueba: "Subir archivo", "Ver flashcards", "Ir a panel profesor".');
+    }
+  </script>
+</body>
+</html>

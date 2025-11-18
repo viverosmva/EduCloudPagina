@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mis Asignaturas (EduCloud)</title>
+  <style>
+    :root{--bg1:#f7fbff;--pri:#073b63;--accent:#0ea5e9;--card:#ffffff;--mut:#6b7280}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+      background:linear-gradient(180deg,var(--bg1),#e8f5ff);
+      color:var(--pri);
+      padding:20px;
+    }
+    h1{
+      font-size:30px;
+      text-align:center;
+      margin:10px 0 20px;
+    }
+    .wrap{max-width:1100px;margin:0 auto}
+    .topbar{display:flex;align-items:center;justify-content:flex-start;margin-bottom:10px}
+    .btn{
+      background:var(--pri);
+      color:#fff;
+      padding:8px 14px;
+      border-radius:8px;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
+      transition:.2s;
+    }
+    .btn:hover{opacity:.9}
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:16px;
+    }
+    @media (max-width:900px){.grid{grid-template-columns:1fr}}
+    .sem{
+      background:var(--card);
+      border-radius:12px;
+      padding:12px;
+      border:1px solid rgba(7,59,99,0.06);
+      box-shadow:0 8px 24px rgba(7,59,99,0.04);
+    }
+    .sem-head{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+    .sem-num{
+      background:var(--pri);
+      color:white;
+      padding:8px 10px;
+      border-radius:8px;
+      font-weight:800;
+    }
+    .sem-body{display:grid;gap:10px}
+    .subj{
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      padding:10px;
+      border-radius:10px;
+      background:linear-gradient(180deg,#ffffff,#f8fcff);
+      border:1px solid rgba(14,165,233,0.06);
+    }
+    .subj .left{flex:1}
+    .subj .title{font-weight:800}
+    .subj .time{
+      background:#e6f8ff;
+      border-radius:8px;
+      padding:6px 8px;
+      color:#036;
+      display:inline-block;
+      font-weight:700;
+      margin-top:8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <!-- Opción 1: volver a la página anterior -->
+    <button class="btn" onclick="window.history.back()">⟵ Volver atrás</button>
+
+      <!-- Opción 2 (descomenta esta línea si prefieres redirigir siempre al índice)
+      <button class='btn' onclick=\"window.location.href='indice-profesor.html'\">⟵ Volver atrás</button>
+      -->
+    </div>
+
+    <h1>Mis Asignaturas</h1>
+
+    <section class="grid" id="grid"></section>
+  </div>
+
+  <script>
+    // Solo materias de INGENIERÍA
+    const S = {
+      1: ['Introducción a la Programación','Introducción a la Ingeniería de Sistemas'],
+      2: ['Programación de Computadores'],
+      3: ['Programación en Entornos Gráficos'],
+      4: ['Estructuras de Información','Teoría de Base de Datos','Ingeniería de Software'],
+      5: ['Programación Avanzada','Base de Datos I','Ingeniería de Requisitos'],
+      6: ['Electiva de Programación','Electiva Disciplinar I','Base de Datos II','Ingeniería de Control de Calidad'],
+      7: ['Investigación de Operaciones','Sistemas Operativos','Diseño de productos e innovación en TI','Electiva disciplinar II','Ingeniería Económica'],
+      8: ['Investigación I','Telemática I','Electiva Disciplinar III','Electiva Interdisciplinar I'],
+      9: ['Investigación II','Telemática II','Electiva Disciplinar IV','Electiva Interdisciplinar II','Auditoría de Sistemas','Gerencia y Gestión de Proyectos'],
+      10:['Investigación III','Práctica Profesional']
+    };
+
+    const SLOTS = [
+      'Lun 07:00–09:00','Lun 09:00–11:00','Lun 11:00–13:00',
+      'Mar 07:00–09:00','Mar 09:00–11:00','Mar 16:00–18:00',
+      'Mié 07:00–09:00','Mié 09:00–11:00','Mié 14:00–16:00',
+      'Jue 07:00–09:00','Jue 11:00–13:00','Jue 16:00–18:00',
+      'Vie 07:00–09:00','Vie 09:00–11:00','Vie 14:00–16:00'
+    ];
+
+    const KEY = 'educloud_sem_subjects_v1';
+
+    const randPick = (arr,n)=>{ const copy=[...arr]; const out=[]; while(n-->0 && copy.length){ out.push(copy.splice(Math.floor(Math.random()*copy.length),1)[0]); } return out }
+    const randSlots = k => randPick(SLOTS, k);
+
+    const loadAssign = ()=>{ try{ return JSON.parse(localStorage.getItem(KEY)||'null'); }catch{return null} }
+    const saveAssign = v => localStorage.setItem(KEY, JSON.stringify(v));
+
+    function buildAssign(){
+      const out={};
+      for(let sem=1; sem<=10; sem++){
+        const pool = S[sem] || [];
+        if(!pool.length){ out[sem]=[]; continue; }
+        const n = Math.random()<0.6 ? 1 : 2;
+        const picks = randPick(pool, n);
+        out[sem] = picks.map(name => ({ name, schedule: randSlots(1 + Math.floor(Math.random()*2)) }));
+      }
+      return out;
+    }
+
+    function render(){
+      const root = document.getElementById('grid');
+      root.innerHTML = '';
+      const assign = loadAssign() || (function(){ const a = buildAssign(); saveAssign(a); return a; })();
+
+      for(let sem=1; sem<=10; sem++){
+        const col = document.createElement('section'); col.className='sem';
+        const head = document.createElement('div'); head.className='sem-head';
+        head.innerHTML = `<div class="sem-num">${sem}º</div>
+                          <div><strong>${sem}º Semestre</strong>
+                          <div style="color:var(--mut);font-size:13px">Seleccionadas: ${assign[sem].length}</div></div>`;
+        const body = document.createElement('div'); body.className='sem-body';
+
+        if(assign[sem].length===0){
+          body.innerHTML = '<div class="subj"><div class="left"><div class="title">Sin materias seleccionadas</div></div></div>';
+        } else {
+          for(const subj of assign[sem]){
+            const s = document.createElement('div'); s.className='subj';
+            const left = document.createElement('div'); left.className='left';
+            left.innerHTML = `<div class="title">${escapeHTML(subj.name)}</div>`;
+            const right = document.createElement('div'); right.className='right';
+            right.innerHTML = subj.schedule.map(t=> `<div class="time">${t}</div>`).join('');
+            s.appendChild(left); s.appendChild(right);
+            body.appendChild(s);
+          }
+        }
+        col.appendChild(head); col.appendChild(body); root.appendChild(col);
+      }
+    }
+
+    function escapeHTML(s){
+      return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+    }
+
+    document.addEventListener('DOMContentLoaded', ()=>{
+      if(!loadAssign()){ saveAssign(buildAssign()); }
+      render();
+    });
+  </script>
+</body>
+</html>

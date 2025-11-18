@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduCloud - Mi Perfil</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="profile" onload="loadProfileData()">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <button class="back-btn" onclick="window.location.href='indice.html'">← Volver</button>
+      <h1>👤 Mi Perfil</h1>
+    </div>
+    <button class="edit-mode-toggle" id="editToggle" onclick="toggleEditMode()">✏️ Editar Perfil</button>
+  </div>
+
+  <div class="container">
+    <div class="profile-card">
+      <div class="cover-image"></div>
+
+      <!-- Encabezado -->
+      <div class="profile-header">
+        <div class="avatar-container">
+          <div class="avatar" id="avatar" onclick="document.getElementById('avatarInput').click()">
+            <span id="avatarInitials">U</span>
+            <img id="avatarImage" style="display:none;">
+          </div>
+          <div class="camera-overlay" onclick="document.getElementById('avatarInput').click()">📷</div>
+          <input type="file" id="avatarInput" accept="image/*" onchange="handleAvatarChange(event)">
+        </div>
+
+        <div class="profile-info-header">
+          <h2 class="profile-name" id="displayName">Usuario</h2>
+          <p class="profile-role" id="displayRole">Estudiante</p>
+          <div class="profile-badges">
+            <span class="badge badge-student" id="badgeRole">🎓 Estudiante</span>
+            <span class="badge badge-verified">✓ Verificado</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contenido -->
+      <div class="profile-content">
+        <!-- Información Personal -->
+        <div class="section">
+          <h3 class="section-title">📋 Información Personal</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Nombre Completo</div>
+              <div class="view-mode info-value" id="viewNombre">—</div>
+              <input type="text" class="edit-mode" id="editNombre">
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Correo Electrónico</div>
+              <div class="view-mode info-value" id="viewEmail">—</div>
+              <input type="email" class="edit-mode" id="editEmail">
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Teléfono</div>
+              <div class="view-mode info-value" id="viewTelefono">—</div>
+              <input type="tel" class="edit-mode" id="editTelefono">
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Fecha de Nacimiento</div>
+              <div class="view-mode info-value" id="viewFechaNac">—</div>
+              <input type="date" class="edit-mode" id="editFechaNac">
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Identificación</div>
+              <div class="view-mode info-value" id="viewIdentificacion">—</div>
+              <input type="text" class="edit-mode" id="editIdentificacion">
+            </div>
+          </div>
+        </div>
+
+        <!-- Información Académica -->
+        <div class="section">
+          <h3 class="section-title">🎓 Información Académica</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Carrera</div>
+              <div class="view-mode info-value" id="viewCarrera">Ingeniería de Sistemas</div>
+              <select class="edit-mode" id="editCarrera">
+                <option value="Ingeniería de Sistemas" selected>Ingeniería de Sistemas</option>
+                <option value="Licenciatura en Educación Infantil">Licenciatura en Educación Infantil</option>
+                <option value="Derecho">Derecho</option>
+              </select>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Semestre</div>
+              <div class="view-mode info-value" id="viewSemestre">7° Semestre</div>
+              <select class="edit-mode" id="editSemestre">
+                <option value="1">1°</option>
+                <option value="2">2°</option>
+                <option value="3">3°</option>
+                <option value="4">4°</option>
+                <option value="5">5°</option>
+                <option value="6">6°</option>
+                <option value="7" selected>7°</option>
+                <option value="8">8°</option>
+                <option value="9">9°</option>
+                <option value="10">10°</option>
+              </select>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Código Estudiantil</div>
+              <div class="view-mode info-value" id="viewCodigo">—</div>
+              <input type="text" class="edit-mode" id="editCodigo">
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">Grupo</div>
+              <div class="view-mode info-value" id="viewGrupo">—</div>
+              <input type="text" class="edit-mode" id="editGrupo">
+            </div>
+          </div>
+        </div>
+
+        <!-- Bio -->
+        <div class="section">
+          <h3 class="section-title">📝 Biografía</h3>
+          <div class="info-item">
+            <div class="view-mode info-value" id="viewBio">—</div>
+            <textarea class="edit-mode" id="editBio" placeholder="Cuéntanos sobre ti..."></textarea>
+          </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="action-buttons edit-mode" style="display:none;">
+          <button class="btn-cancel" onclick="toggleEditMode()">Cancelar</button>
+          <button class="btn-save" onclick="saveProfile()">💾 Guardar Cambios</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+  <script>
+    function loadProfileData(){
+      const s = getSession();
+      if (!s) return;
+
+      const nombre = s.nombre || 'Usuario';
+      const email = s.email || 'sin correo';
+      const telefono = s.telefono || '';
+      const fecha = s.fechaNac || '';
+      const id = s.identificacion || '';
+      const carrera = s.carrera || 'Ingeniería de Sistemas';
+      const semestre = s.semestre || '7';
+      const codigo = s.codigo || '';
+      const grupo = s.grupo || '';
+      const bio = s.bio || 'Estudiante apasionado por la tecnología.';
+
+      document.getElementById('displayName').textContent = nombre;
+      document.getElementById('viewNombre').textContent = nombre;
+      document.getElementById('editNombre').value = nombre;
+
+      document.getElementById('viewEmail').textContent = email;
+      document.getElementById('editEmail').value = email;
+
+      document.getElementById('viewTelefono').textContent = telefono;
+      document.getElementById('editTelefono').value = telefono;
+
+      document.getElementById('viewFechaNac').textContent = fecha || '—';
+      document.getElementById('editFechaNac').value = fecha;
+
+      document.getElementById('viewIdentificacion').textContent = id;
+      document.getElementById('editIdentificacion').value = id;
+
+      document.getElementById('viewCarrera').textContent = carrera;
+      document.getElementById('editCarrera').value = carrera;
+
+      document.getElementById('viewSemestre').textContent = semestre + '° Semestre';
+      document.getElementById('editSemestre').value = semestre;
+
+      document.getElementById('viewCodigo').textContent = codigo;
+      document.getElementById('editCodigo').value = codigo;
+
+      document.getElementById('viewGrupo').textContent = grupo;
+      document.getElementById('editGrupo').value = grupo;
+
+      document.getElementById('viewBio').textContent = bio;
+      document.getElementById('editBio').value = bio;
+
+      const initials = nombre.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+      document.getElementById('avatarInitials').textContent = initials;
+
+      const savedAvatar = localStorage.getItem('avatar');
+      if (savedAvatar){
+        document.getElementById('avatarImage').src = savedAvatar;
+        document.getElementById('avatarImage').style.display = 'block';
+        document.getElementById('avatarInitials').style.display = 'none';
+      }
+    }
+
+    function toggleEditMode(){
+      document.body.classList.toggle('editing');
+    }
+
+    function saveProfile(){
+      const nombre = document.getElementById('editNombre').value.trim();
+      const email = document.getElementById('editEmail').value.trim();
+      const telefono = document.getElementById('editTelefono').value.trim();
+      const fechaNac = document.getElementById('editFechaNac').value.trim();
+      const identificacion = document.getElementById('editIdentificacion').value.trim();
+      const carrera = document.getElementById('editCarrera').value;
+      const semestre = document.getElementById('editSemestre').value;
+      const codigo = document.getElementById('editCodigo').value.trim();
+      const grupo = document.getElementById('editGrupo').value.trim();
+      const bio = document.getElementById('editBio').value.trim();
+
+      if (!nombre || !email) {
+        alert("Completa los campos obligatorios (nombre y correo).");
+        return;
+      }
+
+      const s = getSession();
+      s.nombre = nombre;
+      s.email = email;
+      s.telefono = telefono;
+      s.fechaNac = fechaNac;
+      s.identificacion = identificacion;
+      s.carrera = carrera;
+      s.semestre = semestre;
+      s.codigo = codigo;
+      s.grupo = grupo;
+      s.bio = bio;
+      setSession(s);
+
+      const users = getUsers();
+      const idx = users.findIndex(u => (u.email || '').toLowerCase() === email.toLowerCase());
+      if (idx >= 0) {
+        users[idx].nombre = nombre.split(' ')[0];
+        users[idx].apellido = nombre.split(' ').slice(1).join(' ');
+        users[idx].telefono = telefono;
+        users[idx].carrera = carrera;
+        users[idx].semestre = semestre;
+        users[idx].bio = bio;
+        saveUsers(users);
+      }
+
+      alert("✅ Perfil actualizado correctamente");
+      document.body.classList.remove('editing');
+      loadProfileData();
+    }
+
+    function handleAvatarChange(event){
+      const file = event.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const avatarImage = document.getElementById('avatarImage');
+        const avatarInitials = document.getElementById('avatarInitials');
+        avatarImage.src = e.target.result;
+        avatarImage.style.display = 'block';
+        avatarInitials.style.display = 'none';
+        localStorage.setItem('avatar', e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  </script>
+</body>
+</html>
+
+
+
+

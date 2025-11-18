@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduCloud - Recursos</title>
+<style>
+  :root{
+    --primary:#1e3a8a; --accent:#3b82f6;
+    --ink:#0f172a; --muted:#64748b;
+    --card:#ffffff; --ring:#e5e7eb; --panel:#f8fafc;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    min-height:100vh; color:var(--ink);
+  }
+  .wrap{max-width:1000px;margin:28px auto;padding:0 16px 48px;}
+  .top{display:flex;align-items:center;justify-content:space-between;color:#fff;margin-bottom:18px}
+  .top h1{font-size:24px;font-weight:800}
+  .back{border:none;background:#fff;color:var(--primary);padding:10px 16px;border-radius:12px;font-weight:700;cursor:pointer;transition:.25s;box-shadow:0 6px 18px rgba(0,0,0,.15)}
+  .back:hover{transform:translateX(-3px);background:#e0e7ff}
+
+  .card{background:var(--card);border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,.15);overflow:hidden}
+
+  /* Carpeta (details/summary) */
+  details+details{border-top:1px solid var(--ring)}
+  summary{list-style:none;cursor:pointer;padding:18px 20px;font-weight:800;color:var(--primary);
+          display:flex;align-items:center;justify-content:space-between;user-select:none}
+  summary::-webkit-details-marker{display:none}
+  .folder{display:flex;align-items:center;gap:12px;}
+  .folder-icon{width:36px;height:26px;border-radius:6px;background:linear-gradient(180deg,#facc15,#eab308);
+               position:relative; box-shadow:0 3px 10px rgba(0,0,0,.15);}
+  .folder-icon:before{content:""; position:absolute; left:3px; top:-6px; width:18px; height:10px; border-radius:4px;
+                      background:linear-gradient(180deg,#fde047,#facc15);}
+  .badge{background:#eff6ff; color:var(--accent); font-size:12px; font-weight:800; padding:4px 8px; border-radius:999px;}
+  .chev{width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;background:#eff6ff;color:var(--accent);font-weight:900;transition:.25s}
+  details[open]>summary .chev{transform:rotate(90deg)}
+
+  .panel{background:var(--panel);border-top:1px solid var(--ring);padding:16px}
+
+  /* Lista de recursos */
+  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .item{background:#fff;border:1px solid var(--ring);border-left:4px solid var(--accent);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+  .item h4{color:var(--primary);font-size:15px;line-height:1.25}
+  .meta{font-size:12px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}
+  .preview{font-size:13px;color:#334155;background:#f8fafc;border:1px solid var(--ring);border-radius:8px;padding:10px}
+  .empty{background:#fff;border:1px dashed var(--ring);border-radius:12px;padding:16px;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1>Recursos</h1>
+      <button class="back" onclick="window.location.href='indice.html'">← Volver al Panel</button>
+    </div>
+
+    <div class="card">
+      <!-- Carpeta: Flashcards -->
+      <details open>
+        <summary>
+          <span class="folder">
+            <span class="folder-icon"></span>
+            <span>Flashcards</span>
+            <span class="badge" id="countFlash">0</span>
+          </span>
+          <span class="chev">▶</span>
+        </summary>
+        <div class="panel">
+          <div id="emptyFlash" class="empty">No tienes flashcards guardadas.</div>
+          <div id="listFlash" class="grid"></div>
+        </div>
+      </details>
+
+      <!-- Carpeta: Exámenes simulados -->
+      <details>
+        <summary>
+          <span class="folder">
+            <span class="folder-icon"></span>
+            <span>Exámenes simulados</span>
+            <span class="badge" id="countExam">0</span>
+          </span>
+          <span class="chev">▶</span>
+        </summary>
+        <div class="panel">
+          <div id="emptyExam" class="empty">No tienes exámenes simulados guardados.</div>
+          <div id="listExam" class="grid"></div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+<script>
+/* ==== Claves esperadas en localStorage ==== */
+const FLASH_KEY = 'ec_flashcards';
+const EXAM_KEY  = 'ec_examenes';
+
+/* ==== Utilidades ==== */
+const read = (k) => { try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch { return []; } };
+const esc  = (s) => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+/* ==== Render ==== */
+function renderFolder(type){
+  const isFlash = type === 'flash';
+  const key     = isFlash ? FLASH_KEY : EXAM_KEY;
+  const data    = read(key);
+
+  const listEl  = document.getElementById(isFlash ? 'listFlash'  : 'listExam');
+  const emptyEl = document.getElementById(isFlash ? 'emptyFlash' : 'emptyExam');
+  const countEl = document.getElementById(isFlash ? 'countFlash' : 'countExam');
+
+  countEl.textContent = data.length;
+  listEl.innerHTML = '';
+  emptyEl.style.display = data.length ? 'none' : 'block';
+
+  data.forEach(item => {
+    const fecha = item.fecha || item.fechaISO || new Date().toISOString();
+    const meta1 = `Materia: ${esc(item.materia || '—')}`;
+    const meta2 = item.semestre ? `Semestre: ${esc(item.semestre)}` : '';
+    const meta3 = isFlash
+      ? (item.tarjetas ? `Tarjetas: ${esc(item.tarjetas)}` : '')
+      : (item.preguntas ? `Preguntas: ${esc(item.preguntas)}` : '');
+    const card = document.createElement('div');
+    card.className = 'item';
+    card.innerHTML = `
+      <h4>${esc(item.titulo || '(sin título)')}</h4>
+      <div class="meta">
+        <span>${meta1}</span>
+        ${meta2 ? `<span>${meta2}</span>` : ''}
+        ${meta3 ? `<span>${meta3}</span>` : ''}
+        <span>Fecha: ${new Date(fecha).toLocaleDateString()}</span>
+      </div>
+      ${item.preview ? `<div class="preview">${esc(item.preview)}</div>` : ''}
+    `;
+    listEl.appendChild(card);
+  });
+}
+
+function renderAll(){
+  renderFolder('flash');
+  renderFolder('exam');
+}
+
+/* ==== Inicialización ==== */
+document.addEventListener('DOMContentLoaded', () => {
+  renderAll();
+});
+</script>
+</body>
+</html>
+
+

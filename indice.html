@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduCloud - Panel</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .logout-btn {
+      background: linear-gradient(135deg,#ef4444,#b91c1c);
+      border:none;color:white;
+      padding:10px 18px;border-radius:10px;
+      font-weight:600;cursor:pointer;transition:.3s;
+    }
+    .logout-btn:hover{
+      background:linear-gradient(135deg,#dc2626,#991b1b);
+      transform:scale(1.05);
+    }
+    .menu-item,.card{cursor:pointer}
+  </style>
+</head>
+<body class="dashboard" onload="initDashboard()">
+  <!-- ======= GUARD DE SESIÓN + FALLBACKS ======= -->
+  <script>
+    (function(){
+      const SESSION_KEY = 'educloud_session';
+      function readSession(){
+        try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }
+        catch { return null; }
+      }
+      const s = readSession();
+      if(!s){
+        location.replace('inicio_sesion.html');
+        return;
+      }
+      // Exponer sesión
+      window.EDU_SESSION = s;
+
+      // Fallbacks si faltan funciones externas
+      if(typeof window.getSession !== 'function'){
+        window.getSession = () => readSession();
+      }
+      if(typeof window.logout !== 'function'){
+        window.logout = function(){
+          localStorage.removeItem(SESSION_KEY);
+          location.replace('inicio_sesion.html');
+        };
+      }
+      if(typeof window.goTo !== 'function'){
+        window.goTo = (url)=> location.href = url;
+      }
+      if(typeof window.protectPage !== 'function'){
+        window.protectPage = function(){
+          if(!readSession()) location.replace('inicio_sesion.html');
+        };
+      }
+      if(typeof window.i18n !== 'object'){
+        window.i18n = {
+          setParam: (sel, _key, data)=> {
+            const el = document.querySelector(sel);
+            if(el && data && data.name) el.textContent = `¡Bienvenido de nuevo, ${data.name}!`;
+          },
+          auto: ()=>{}
+        };
+      }
+    })();
+  </script>
+  <!-- ======= /GUARD ======= -->
+
+  <!-- Barra superior -->
+  <div class="top-bar">
+    <div class="logo-small">
+      <div class="logo-icon">☁️</div>
+      <span>EduCloud</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:15px;">
+      <div class="user-section" onclick="navigate('perfil')">
+        <div class="user-info">
+          <h3 id="userName">Usuario</h3>
+          <p id="userSub" data-i18n="role.student">Estudiante de Ingeniería</p>
+        </div>
+        <div class="user-avatar">👨‍🎓</div>
+      </div>
+      <button class="logout-btn" onclick="cerrarSesion()" data-i18n="btn.logout">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <!-- Contenedor principal -->
+  <div class="main-container">
+    <!-- Menú lateral -->
+    <div class="sidebar">
+      <div class="menu-item active" onclick="navigate('dashboard')">
+        <span class="menu-icon">🏠</span><span data-i18n="menu.home">Inicio</span>
+      </div>
+      <div class="menu-item" onclick="goTo('programas.html')">
+        <span class="menu-icon">📚</span><span data-i18n="menu.programs">Programas</span>
+      </div>
+      <div class="menu-item" onclick="goTo('recursos.html')">
+        <span class="menu-icon">💾</span><span data-i18n="menu.resources">Recursos</span>
+      </div>
+      <div class="menu-item" onclick="goTo('flashcard.html')">
+        <span class="menu-icon">🤖</span><span data-i18n="menu.flashcards">IA Flashcards</span>
+      </div>
+      <div class="menu-item" onclick="goTo('examenes.html')">
+        <span class="menu-icon">🧠</span><span data-i18n="menu.exams">Examen Simulado</span>
+      </div>
+      <div class="menu-item" onclick="goTo('configuracion.html')">
+        <span class="menu-icon">⚙️</span><span data-i18n="menu.settings">Configuración</span>
+      </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="content">
+      <div class="welcome-section">
+        <h1 id="welcomeText">¡Bienvenido de nuevo! 👋</h1>
+        <p data-i18n="dashboard.subtitle">Aquí está tu resumen académico de hoy</p>
+      </div>
+
+      <!-- Tarjetas principales -->
+      <div class="cards-grid">
+        <div class="card card-2" onclick="goTo('flashcard.html')">
+          <div class="card-icon">🤖</div>
+          <h3 data-i18n="dashboard.card.flash.title">Crea flashcards con IA</h3>
+          <p data-i18n="dashboard.card.flash.text">
+            Transforma tus apuntes y materiales en tarjetas de estudio inteligentes automáticamente.
+          </p>
+        </div>
+
+        <div class="card card-3" onclick="goTo('examenes.html')">
+          <div class="card-icon">🎯</div>
+          <h3 data-i18n="dashboard.card.exam.title">Realiza un examen de práctica</h3>
+          <p data-i18n="dashboard.card.exam.text">
+            Pon a prueba tus conocimientos con exámenes simulados generados por IA.
+          </p>
+        </div>
+      </div>
+
+      <!-- Widget de progreso -->
+      <div class="progress-widget">
+        <h2>📊 Tu Progreso Académico</h2>
+        <div class="stat-item">
+          <div class="stat-label"><span class="stat-icon">📚</span><span>Recursos consultados</span></div>
+          <div class="stat-value">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label"><span class="stat-icon">🤖</span><span>Flashcards creadas</span></div>
+          <div class="stat-value">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label"><span class="stat-icon">🧠</span><span>Exámenes completados</span></div>
+          <div class="stat-value">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label"><span class="stat-icon">🏆</span><span>Logros desbloqueados</span></div>
+          <div class="stat-value">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/main.js"></script>
+  <script src="js/i18n.js"></script>
+  <script>
+    function initDashboard() {
+      protectPage();
+      const s = getSession();
+      const nombre = (s && (s.nombre || s.email)) || "Usuario";
+      const rol = (s && s.rol) || "estudiante";
+      document.getElementById("userName").textContent = nombre;
+
+      // ✅ Ajuste: nuestra sesión usa 'docente' (no 'profesor')
+      document.getElementById("userSub").setAttribute(
+        "data-i18n",
+        rol === "docente" ? "role.professor" : rol === "admin" ? "role.admin" : "role.student"
+      );
+
+      i18n.setParam("#welcomeText", "dashboard.welcome", { name: nombre });
+      i18n.auto();
+    }
+    function cerrarSesion() { logout(); }
+  </script>
+</body>
+</html>

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduCloud - Subir Material</title>
+    <style>
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%);
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .header-left {
+            display: flex; align-items: center; gap: 20px;
+        }
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none; color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer; font-size: 14px;
+            transition: all 0.3s;
+        }
+        .back-btn:hover { background: rgba(255,255,255,0.3); }
+        .header h1 { font-size: 24px; font-weight: 600; }
+        .container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        .form-card {
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 50px 45px;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .form-header { text-align: center; margin-bottom: 40px; }
+        .form-icon { font-size: 70px; margin-bottom: 20px; }
+        .form-header h2 { font-size: 28px; color: #1e293b; margin-bottom: 10px; }
+        .form-header p { color: #64748b; font-size: 15px; }
+        .form-group { margin-bottom: 30px; }
+        .form-group label {
+            display: block; font-size: 15px;
+            font-weight: 600; color: #334155;
+            margin-bottom: 12px;
+        }
+        .required { color: #ef4444; }
+        select {
+            width: 100%; padding: 15px 18px;
+            border: 2px solid #e2e8f0; border-radius: 12px;
+            font-size: 15px; transition: all 0.3s;
+            background: white; cursor: pointer; color: #334155;
+        }
+        select:focus {
+            outline: none; border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+        select:disabled {
+            background: #f1f5f9; cursor: not-allowed; color: #94a3b8;
+        }
+        .file-upload-wrapper { position: relative; }
+        .file-upload-area {
+            border: 3px dashed #cbd5e1; border-radius: 15px;
+            padding: 50px 30px; text-align: center; cursor: pointer;
+            transition: all 0.3s; background: #f8fafc;
+        }
+        .file-upload-area:hover { border-color: #3b82f6; background: #eff6ff; }
+        .file-upload-area.active { border-color: #10b981; background: #f0fdf4; }
+        .file-upload-icon { font-size: 60px; margin-bottom: 20px; }
+        .file-upload-text { color: #64748b; font-size: 16px; margin-bottom: 10px; }
+        .file-upload-hint { color: #94a3b8; font-size: 13px; }
+        .file-name-display { margin-top: 20px; display: none; }
+        .file-name-display.show { display: block; }
+        .file-item {
+            padding: 15px; background: #eff6ff; border-radius: 10px;
+            border-left: 4px solid #3b82f6;
+            margin-bottom: 10px; display: flex;
+            justify-content: space-between; align-items: center;
+        }
+        .file-info strong { color: #1e40af; display: block; margin-bottom: 5px; }
+        .file-size { color: #64748b; font-size: 14px; }
+        .remove-file-btn {
+            background: #ef4444; color: white; border: none;
+            padding: 8px 15px; border-radius: 8px;
+            cursor: pointer; font-size: 13px; font-weight: 600;
+            transition: all 0.3s;
+        }
+        .remove-file-btn:hover { background: #dc2626; transform: scale(1.05); }
+        #fileInput { display: none; }
+        .info-box {
+            background: #fffbeb; border-left: 4px solid #f59e0b;
+            padding: 15px 20px; border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .info-box p { color: #92400e; font-size: 14px; line-height: 1.6; margin: 0; }
+        .submit-btn {
+            width: 100%; padding: 18px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white; border: none; border-radius: 12px;
+            font-size: 17px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s;
+            text-transform: uppercase; letter-spacing: 1px;
+            margin-top: 20px;
+        }
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+        }
+        .submit-btn:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; }
+        .progress-steps {
+            display: flex; justify-content: center; align-items: center;
+            gap: 15px; margin-bottom: 40px;
+        }
+        .step {
+            width: 45px; height: 45px; border-radius: 50%;
+            background: #e2e8f0; display: flex; align-items: center; justify-content: center;
+            font-weight: 700; color: #94a3b8; font-size: 18px;
+            transition: all 0.3s;
+        }
+        .step.active { background: linear-gradient(135deg, #3b82f6, #1e3a8a); color: white; transform: scale(1.1); }
+        .step.completed { background: #10b981; color: white; }
+        .step-line { width: 50px; height: 3px; background: #e2e8f0; transition: all 0.3s; }
+        .step-line.completed { background: #10b981; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <button class="back-btn" onclick="goBack()">← Volver</button>
+            <h1>➕ Subir Material</h1>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="form-card">
+            <div class="progress-steps">
+                <div class="step" id="step1">1</div>
+                <div class="step-line" id="line1"></div>
+                <div class="step" id="step2">2</div>
+                <div class="step-line" id="line2"></div>
+                <div class="step" id="step3">3</div>
+            </div>
+
+            <div class="form-header">
+                <div class="form-icon">📤</div>
+                <h2>Publicar Material Educativo</h2>
+                <p>Comparte recursos con tus estudiantes</p>
+            </div>
+
+            <div class="info-box">
+                <p>💡 Solo se permiten archivos en formato PDF (máx. 10MB cada uno).</p>
+            </div>
+
+            <form id="uploadForm" onsubmit="handleSubmit(event)">
+                <div class="form-group">
+                    <label for="asignatura">Asignatura <span class="required">*</span></label>
+                    <select id="asignatura" required onchange="handleAsignaturaChange()">
+                        <option value="">Selecciona una asignatura</option>
+                        <option value="sistemas-operativos">Sistemas Operativos</option>
+                        <option value="base-datos">Base de Datos</option>
+                        <option value="diseno-ti">Diseño e Innovación en TI</option>
+                        <option value="investigacion-operaciones">Investigación de Operaciones</option>
+                        <option value="ingenieria-economica">Ingeniería Económica</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="grupo">Grupo <span class="required">*</span></label>
+                    <select id="grupo" required disabled onchange="handleGrupoChange()">
+                        <option value="">Primero selecciona una asignatura</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Archivos PDF <span class="required">*</span></label>
+                    <div class="file-upload-wrapper">
+                        <div class="file-upload-area" id="fileUploadArea" onclick="document.getElementById('fileInput').click()">
+                            <div class="file-upload-icon">📁</div>
+                            <p class="file-upload-text">Haz click o arrastra tus archivos PDF aquí</p>
+                            <p class="file-upload-hint">Solo se permiten archivos PDF (máx. 10MB cada uno)</p>
+                        </div>
+                        <input type="file" id="fileInput" accept=".pdf" multiple required onchange="handleFileSelect(event)">
+                        <div class="file-name-display" id="fileNameDisplay">
+                            <strong>📎 Archivos seleccionados:</strong><br>
+                            <div id="fileList"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn" disabled>📤 Publicar Material</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const gruposPorAsignatura = {
+            'sistemas-operativos': ['7A', '7B', '7E'],
+            'base-datos': ['7A', '7C'],
+            'diseno-ti': ['7A', '7D'],
+            'investigacion-operaciones': ['7A', '7E', '7F'],
+            'ingenieria-economica': ['7B', '7C']
+        };
+
+        let selectedFiles = [];
+
+        function goBack() { window.history.back(); }
+
+        function handleAsignaturaChange() {
+            const asignaturaSelect = document.getElementById('asignatura');
+            const grupoSelect = document.getElementById('grupo');
+            const selectedAsignatura = asignaturaSelect.value;
+            updateStep(1);
+
+            if (selectedAsignatura) {
+                grupoSelect.disabled = false;
+                grupoSelect.innerHTML = '<option value="">Selecciona un grupo</option>';
+                const grupos = gruposPorAsignatura[selectedAsignatura] || [];
+                grupos.forEach(grupo => {
+                    const option = document.createElement('option');
+                    option.value = grupo;
+                    option.textContent = grupo;
+                    grupoSelect.appendChild(option);
+                });
+            } else {
+                grupoSelect.disabled = true;
+                grupoSelect.innerHTML = '<option value="">Primero selecciona una asignatura</option>';
+                updateStep(0);
+            }
+            validateForm();
+        }
+
+        function handleGrupoChange() {
+            if (document.getElementById('grupo').value) updateStep(2);
+            validateForm();
+        }
+
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            const fileDisplay = document.getElementById('fileNameDisplay');
+            const fileList = document.getElementById('fileList');
+            const fileUploadArea = document.getElementById('fileUploadArea');
+
+            fileList.innerHTML = '';
+            selectedFiles = [];
+
+            files.forEach(file => {
+                if (file.type !== 'application/pdf') {
+                    alert(`❌ El archivo "${file.name}" no es un PDF.`);
+                    return;
+                }
+                if (file.size > 10 * 1024 * 1024) {
+                    alert(`⚠️ El archivo "${file.name}" supera los 10 MB.`);
+                    return;
+                }
+
+                selectedFiles.push(file);
+
+                const fileItem = document.createElement('div');
+                fileItem.classList.add('file-item');
+                fileItem.innerHTML = `
+                    <div class="file-info">
+                        <strong>${file.name}</strong>
+                        <span class="file-size">Tamaño: ${(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                    </div>
+                    <button class="remove-file-btn" onclick="removeFile('${file.name}')">Eliminar</button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+
+            if (selectedFiles.length > 0) {
+                fileDisplay.classList.add('show');
+                fileUploadArea.classList.add('active');
+                updateStep(3);
+            } else {
+                fileDisplay.classList.remove('show');
+                fileUploadArea.classList.remove('active');
+            }
+            validateForm();
+        }
+
+        function removeFile(name) {
+            selectedFiles = selectedFiles.filter(f => f.name !== name);
+            const input = document.getElementById('fileInput');
+            const dataTransfer = new DataTransfer();
+            selectedFiles.forEach(f => dataTransfer.items.add(f));
+            input.files = dataTransfer.files;
+            handleFileSelect({ target: { files: input.files } });
+        }
+
+        function updateStep(completedStep) {
+            for (let i = 1; i <= 3; i++) {
+                const step = document.getElementById(`step${i}`);
+                const line = document.getElementById(`line${i}`);
+                if (i < completedStep) {
+                    step.classList.add('completed'); step.classList.remove('active');
+                    if (line) line.classList.add('completed');
+                } else if (i === completedStep) {
+                    step.classList.add('active'); step.classList.remove('completed');
+                } else {
+                    step.classList.remove('active', 'completed');
+                    if (line) line.classList.remove('completed');
+                }
+            }
+        }
+
+        function validateForm() {
+            const asignatura = document.getElementById('asignatura').value;
+            const grupo = document.getElementById('grupo').value;
+            document.getElementById('submitBtn').disabled = !(asignatura && grupo && selectedFiles.length > 0);
+        }
+
+        function handleSubmit(event) {
+            event.preventDefault();
+            if (selectedFiles.length === 0) return alert("Selecciona al menos un archivo PDF.");
+
+            const asignatura = document.getElementById('asignatura');
+            const grupo = document.getElementById('grupo').value;
+            const asignaturaText = asignatura.options[asignatura.selectedIndex].text;
+            const fileNames = selectedFiles.map(f => f.name).join('\n');
+
+            if (confirm(`¿Confirmas subir los siguientes archivos?\n\n${fileNames}`)) {
+                const submitBtn = document.getElementById('submitBtn');
+                submitBtn.disabled = true;
+                submitBtn.textContent = '⏳ Subiendo...';
+
+                setTimeout(() => {
+                    alert(`✅ Se han publicado ${selectedFiles.length} archivos PDF correctamente.`);
+                    document.getElementById('uploadForm').reset();
+                    document.getElementById('fileNameDisplay').classList.remove('show');
+                    document.getElementById('fileUploadArea').classList.remove('active');
+                    document.getElementById('grupo').disabled = true;
+                    selectedFiles = [];
+                    submitBtn.textContent = '📤 Publicar Material';
+                    updateStep(0);
+                    validateForm();
+                }, 1500);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EduCloud - Generar Flashcards</title>
+<style>
+  :root{
+    --primary:#1e3a8a; --accent:#3b82f6;
+    --ink:#0f172a; --muted:#64748b;
+    --card:#ffffff; --panel:#f8fafc; --ring:#e5e7eb; --danger:#dc2626; --ok:#059669;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    min-height:100vh; color:var(--ink);
+  }
+  .wrap{max-width:1000px;margin:28px auto;padding:0 16px 48px}
+  .top{display:flex;align-items:center;justify-content:space-between;color:#fff;margin-bottom:18px}
+  .top h1{font-size:24px;font-weight:800}
+  .back{border:none;background:#fff;color:var(--primary);padding:10px 16px;border-radius:12px;font-weight:700;cursor:pointer;transition:.25s;box-shadow:0 6px 18px rgba(0,0,0,.15)}
+  .back:hover{transform:translateX(-3px);background:#e0e7ff}
+
+  .card{background:var(--card);border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,.15);overflow:hidden}
+  .section{padding:18px 16px;border-top:1px solid var(--ring)}
+  .section:first-child{border-top:none}
+
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  label{font-weight:700;color:#334155}
+  .input, select{
+    border:1px solid var(--ring); border-radius:10px; padding:10px 12px; background:#fff; min-width:220px;
+  }
+
+  /* Upload */
+  .upload{
+    border:2px dashed var(--ring); background:var(--panel); border-radius:14px; padding:18px; text-align:center;
+    transition:.25s; cursor:pointer;
+  }
+  .upload:hover{background:#f1f5ff;border-color:#c7d2fe}
+  .filename{font-size:13px;color:var(--muted);margin-top:8px}
+
+  /* Buttons */
+  .btn{
+    border:none; background:linear-gradient(135deg,var(--accent),var(--primary)); color:#fff;
+    padding:12px 16px; border-radius:12px; font-weight:800; cursor:pointer;
+    box-shadow:0 8px 18px rgba(59,130,246,.35); transition:.2s;
+  }
+  .btn:disabled{opacity:.6; cursor:not-allowed; box-shadow:none}
+  .btn:hover:not(:disabled){transform:translateY(-2px)}
+  .btn.ghost{background:#fff;color:var(--primary);border:1px solid var(--ring);box-shadow:none}
+  .btn.small{padding:8px 10px;border-radius:10px;font-size:13px}
+  .btn.danger{background:linear-gradient(135deg,#f87171,#dc2626); box-shadow:0 8px 18px rgba(220,38,38,.25)}
+
+  /* Grid cards */
+  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .fc{
+    background:#fff;border:1px solid var(--ring);border-left:4px solid var(--accent);
+    border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;transition:.2s;
+  }
+  .fc:hover{transform:translateY(-2px);background:#ffffff}
+  .fc h4{font-size:14px;color:var(--primary)}
+  .q, .a{
+    background:#f8fafc;border:1px solid var(--ring);border-radius:8px;padding:10px;font-size:13px;min-height:64px;
+  }
+  .editable{outline:2px solid #c7d2fe;background:#fff}
+  .meta{font-size:12px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}
+  .actions{display:flex;gap:8px;flex-wrap:wrap}
+
+  .empty{background:#fff;border:1px dashed var(--ring);border-radius:12px;padding:16px;text-align:center;color:var(--muted)}
+
+  /* Toast */
+  .toast{
+    position:fixed; left:50%; bottom:24px; transform:translateX(-50%); z-index:50;
+    background:#111827; color:#fff; padding:10px 14px; border-radius:10px; box-shadow:0 10px 24px rgba(0,0,0,.35);
+    opacity:0; pointer-events:none; transition:.3s;
+  }
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1>Generar Flashcards con IA</h1>
+      <div class="row">
+        <button class="back" onclick="window.location.href='indice.html'">← Volver al Panel</button>
+        <button class="back" onclick="window.location.href='recursos.html'">📁 Recursos</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <!-- Entrada -->
+      <div class="section">
+        <div class="row" style="margin-bottom:12px">
+          <div class="upload" onclick="document.getElementById('file').click()">
+            📎 <b>Subir documento</b> (PDF)
+            <div id="filename" class="filename">Ningún archivo seleccionado</div>
+            <input id="file" type="file" accept=".pdf" class="input" style="display:none" />
+          </div>
+
+          <div>
+            <label>Materia</label><br/>
+            <input id="materia" class="input" placeholder="Ej: Sistemas Operativos"/>
+          </div>
+
+          <div>
+            <label>Semestre</label><br/>
+            <select id="semestre">
+              <option value="">—</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+              <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+            </select>
+          </div>
+        </div>
+
+        <button id="genBtn" class="btn">⚡ Generar con IA</button>
+      </div>
+
+      <!-- Resultado -->
+      <div class="section">
+        <h3 style="color:#1e3a8a;margin-bottom:10px">Resultado</h3>
+        <div id="empty" class="empty">Aún no hay flashcards. Sube un documento o pulsa <b>“Generar con IA”</b>.</div>
+        <div id="grid" class="grid" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Guardado</div>
+
+<script>
+/* ====== Util ====== */
+const FLASH_KEY = 'ec_flashcards';
+const read = (k) => { try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch { return []; } };
+const write = (k,v) => localStorage.setItem(k, JSON.stringify(v));
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const toast = (msg="Listo")=>{
+  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1400);
+};
+
+/* ====== Estado ====== */
+let uploadedFile = null;
+let generated = []; // {id, q, a}
+
+/* ====== Eventos ====== */
+document.getElementById('file').addEventListener('change', (e)=>{
+  uploadedFile = e.target.files[0] || null;
+  document.getElementById('filename').textContent = uploadedFile ? uploadedFile.name : 'Ningún archivo seleccionado';
+});
+
+document.getElementById('genBtn').addEventListener('click', ()=>{
+  const materia = document.getElementById('materia').value.trim() || "Sistemas Operativos";
+  const semestre = document.getElementById('semestre').value;
+
+  generated = generateUbuntuFlashcards(materia);
+  renderGrid(materia, semestre);
+});
+
+/* ====== Contenido Ubuntu ====== */
+function generateUbuntuFlashcards(materia){
+  const cards = [
+    {
+      q: "¿Qué es Ubuntu?",
+      a: "Ubuntu es un sistema operativo gratuito basado en Linux y derivado de Debian, lanzado por Canonical en 2004."
+    },
+    {
+      q: "¿Por qué se considera Ubuntu de código abierto?",
+      a: "Porque su código puede ser estudiado, modificado y redistribuido libremente sin coste alguno."
+    },
+    {
+      q: "¿Qué características de seguridad tiene Ubuntu?",
+      a: "Posee configuración segura por defecto, cortafuegos integrado (UFW) y actualizaciones regulares."
+    },
+    {
+      q: "¿Qué interfaz gráfica y herramientas de instalación utiliza Ubuntu?",
+      a: "Utiliza el entorno GNOME y herramientas como Snap y apt para instalar programas fácilmente."
+    },
+    {
+      q: "¿Por qué Ubuntu es fácil de usar?",
+      a: "Ofrece una interfaz intuitiva y una amplia compatibilidad con software y hardware."
+    },
+    {
+      q: "¿Qué usos destacados tiene Ubuntu?",
+      a: "Se utiliza para navegar en Internet, programar, usar aplicaciones de oficina, servidores web y educación."
+    },
+    {
+      q: "¿Por qué Ubuntu es ideal para equipos antiguos?",
+      a: "Porque consume pocos recursos, prolongando la vida útil del hardware más antiguo."
+    },
+    {
+      q: "¿Qué software viene incluido o disponible en Ubuntu?",
+      a: "Incluye aplicaciones como Firefox, LibreOffice, Thunderbird y GIMP, entre otras."
+    }
+  ];
+  return cards.map((c,i)=>({...c,id:`u${i+1}`}));
+}
+
+/* ====== Render ====== */
+function renderGrid(materia, semestre){
+  const grid = document.getElementById('grid');
+  const empty = document.getElementById('empty');
+  grid.innerHTML = '';
+  if(generated.length===0){
+    empty.style.display = 'block'; grid.style.display='none'; return;
+  }
+  empty.style.display = 'none'; grid.style.display='grid';
+
+  generated.forEach((fc, idx)=>{
+    const card = document.createElement('div');
+    card.className = 'fc';
+    card.dataset.id = fc.id;
+    card.innerHTML = `
+      <h4>Flashcard #${idx+1}</h4>
+      <div class="q" contenteditable="false" data-role="q">${esc(fc.q)}</div>
+      <div class="a" contenteditable="false" data-role="a">${esc(fc.a)}</div>
+      <div class="meta">
+        <span>Materia: ${esc(materia)}</span>
+        ${semestre ? `<span>Semestre: ${semestre}</span>`:''}
+      </div>
+      <div class="actions">
+        <button class="btn small ghost" data-action="edit">✏️ Editar</button>
+        <button class="btn small" data-action="save">💾 Guardar</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  grid.onclick = (e)=>{
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    const card = e.target.closest('.fc');
+    const action = btn.dataset.action;
+    if(action==='edit') toggleEdit(card, btn);
+    if(action==='save') saveCard(card, materia, semestre);
+  }
+}
+
+function toggleEdit(card, btn){
+  const q = card.querySelector('[data-role="q"]');
+  const a = card.querySelector('[data-role="a"]');
+  const editing = q.isContentEditable;
+  if(editing){
+    q.contentEditable = a.contentEditable = "false";
+    q.classList.remove('editable'); a.classList.remove('editable');
+    btn.textContent = '✏️ Editar';
+    toast('Cambios listos');
+  } else {
+    q.contentEditable = a.contentEditable = "true";
+    q.classList.add('editable'); a.classList.add('editable');
+    btn.textContent = '✅ Listo';
+    q.focus();
+  }
+}
+
+function saveCard(card, materia, semestre){
+  const q = card.querySelector('[data-role="q"]').innerText.trim();
+  const a = card.querySelector('[data-role="a"]').innerText.trim();
+  const store = read(FLASH_KEY);
+  store.push({
+    id: card.dataset.id || 'fc'+Date.now(),
+    titulo: q,
+    materia, semestre,
+    preview: a,
+    fecha: new Date().toISOString()
+  });
+  write(FLASH_KEY, store);
+  card.style.borderLeftColor = '#10b981';
+  toast('✅ Flashcard guardada en Recursos');
+}
+</script>
+</body>
+</html>
+
+

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EduCloud - Generar Examen Simulado</title>
+<style>
+  :root{
+    --primary:#1e3a8a; --accent:#3b82f6;
+    --ink:#0f172a; --muted:#64748b;
+    --card:#ffffff; --panel:#f8fafc; --ring:#e5e7eb;
+    --ok:#059669; --bad:#dc2626; --warn:#d97706;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    min-height:100vh; color:var(--ink);
+  }
+  .wrap{max-width:1000px;margin:28px auto;padding:0 16px 48px}
+  .top{display:flex;align-items:center;justify-content:space-between;color:#fff;margin-bottom:18px}
+  .top h1{font-size:24px;font-weight:800}
+  .nav-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .back{border:none;background:#fff;color:var(--primary);padding:10px 16px;border-radius:12px;font-weight:700;cursor:pointer;transition:.25s;box-shadow:0 6px 18px rgba(0,0,0,.15)}
+  .back:hover{transform:translateX(-3px);background:#e0e7ff}
+
+  .card{background:var(--card);border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,.15);overflow:hidden}
+  .section{padding:18px 16px;border-top:1px solid var(--ring)}
+  .section:first-child{border-top:none}
+
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  label{font-weight:700;color:#334155}
+  .input, select{
+    border:1px solid var(--ring); border-radius:10px; padding:10px 12px; background:#fff; min-width:220px;
+  }
+
+  /* Upload */
+  .upload{
+    border:2px dashed var(--ring); background:var(--panel); border-radius:14px; padding:18px; text-align:center;
+    transition:.25s; cursor:pointer;
+  }
+  .upload:hover{background:#f1f5ff;border-color:#c7d2fe}
+  .filename{font-size:13px;color:var(--muted);margin-top:8px}
+
+  /* Buttons */
+  .btn{
+    border:none; background:linear-gradient(135deg,var(--accent),var(--primary)); color:#fff;
+    padding:12px 16px; border-radius:12px; font-weight:800; cursor:pointer;
+    box-shadow:0 8px 18px rgba(59,130,246,.35); transition:.2s;
+  }
+  .btn:disabled{opacity:.6; cursor:not-allowed; box-shadow:none}
+  .btn:hover:not(:disabled){transform:translateY(-2px)}
+  .btn.ghost{background:#fff;color:var(--primary);border:1px solid var(--ring);box-shadow:none}
+  .btn.small{padding:8px 10px;border-radius:10px;font-size:13px}
+  .btn.ok{background:linear-gradient(135deg,#34d399,#059669)}
+  .btn.warn{background:linear-gradient(135deg,#fbbf24,#d97706)}
+  .btn.bad{background:linear-gradient(135deg,#f87171,#dc2626)}
+
+  /* Quiz */
+  .quiz{display:grid;gap:14px}
+  .qcard{
+    background:#fff;border:1px solid var(--ring);border-left:4px solid var(--accent);
+    border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px;transition:.2s;
+  }
+  .qtext{font-weight:700;color:#1e3a8a}
+  .opts{display:grid;gap:8px}
+  .opt{
+    display:flex;align-items:center;gap:10px;background:#f8fafc;border:1px solid var(--ring);
+    border-radius:10px;padding:10px;cursor:pointer;transition:.15s;
+  }
+  .opt:hover{background:#f1f5ff}
+  .opt input{accent-color:#3b82f6}
+  .mark{font-size:12px;font-weight:800}
+  .correct{border-color:#bbf7d0;background:#f0fdf4}
+  .wrong{border-color:#fecaca;background:#fef2f2}
+  .legend{font-size:13px;color:var(--muted);margin-top:4px}
+
+  .footer-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+
+  /* Toast */
+  .toast{
+    position:fixed; left:50%; bottom:24px; transform:translateX(-50%); z-index:50;
+    background:#111827; color:#fff; padding:10px 14px; border-radius:10px; box-shadow:0 10px 24px rgba(0,0,0,.35);
+    opacity:0; pointer-events:none; transition:.3s;
+  }
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1>Generar Examen Simulado (ABC)</h1>
+      <div class="nav-actions">
+        <button class="back" onclick="window.location.href='indice.html'">← Panel</button>
+        <button class="back" onclick="window.location.href='recursos.html'">📁 Recursos</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <!-- Entrada: archivo + metadatos -->
+      <div class="section">
+        <div class="row" style="margin-bottom:12px">
+          <div class="upload" onclick="document.getElementById('file').click()">
+            📎 <b>Subir documento</b> (PDF)
+            <div id="filename" class="filename">Ningún archivo seleccionado</div>
+            <input id="file" type="file" accept=".pdf" class="input" style="display:none" />
+          </div>
+
+          <div>
+            <label>Materia</label><br/>
+            <input id="materia" class="input" placeholder="Ej: Constitución Política"/>
+          </div>
+
+          <div>
+            <label>Semestre</label><br/>
+            <select id="semestre">
+              <option value="">—</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+              <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Número de preguntas</label><br/>
+            <select id="nq">
+              <option>5</option><option selected>10</option><option>15</option><option>20</option>
+            </select>
+          </div>
+        </div>
+
+        <button id="genBtn" class="btn">⚡ Generar con IA</button>
+      </div>
+
+      <!-- Examen -->
+      <div class="section">
+        <h3 style="color:#1e3a8a;margin-bottom:10px">Examen</h3>
+        <div id="empty" class="legend">Aún no hay preguntas. Sube un documento (opcional) y pulsa <b>“Generar con IA”</b>.</div>
+        <div id="quiz" class="quiz" style="display:none"></div>
+
+        <div class="footer-actions" id="actions" style="display:none">
+          <button class="btn ok"   id="btnDone">✅ Hecho</button>
+          <button class="btn warn" id="btnReset">↺ Reiniciar</button>
+          <button class="btn"      id="btnSave">💾 Guardar en Recursos</button>
+        </div>
+
+        <div id="result" class="legend" style="display:none;margin-top:6px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Listo</div>
+
+<script>
+/* ====== Util ====== */
+const EXAM_KEY = 'ec_examenes';
+const read  = (k) => { try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch { return []; } };
+const write = (k,v) => localStorage.setItem(k, JSON.stringify(v));
+const esc   = (s) => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const toast = (msg="Listo")=>{
+  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1400);
+};
+function uid(){
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'id_'+Math.random().toString(36).slice(2,9);
+}
+
+/* ====== Estado ====== */
+let uploadedFile = null;
+let currentExam = { materia:'', semestre:'', questions: [] }; // {id, q, options[3], correct}
+
+/* ====== UI events ====== */
+document.getElementById('file').addEventListener('change', (e)=>{
+  uploadedFile = e.target.files[0] || null;
+  document.getElementById('filename').textContent = uploadedFile ? uploadedFile.name : 'Ningún archivo seleccionado';
+});
+
+document.getElementById('genBtn').addEventListener('click', async ()=>{
+  const materia = document.getElementById('materia').value.trim() || "Constitución Política de Colombia";
+  const semestre = document.getElementById('semestre').value;
+  const nq = parseInt(document.getElementById('nq').value, 10) || 10;
+
+  // (Se admite PDF para UI, pero la generación usa tu contenido de Constitución)
+  currentExam = {
+    materia, semestre,
+    questions: generateConstitutionMCQ(nq)
+  };
+  renderExam();
+});
+
+/* ====== Generación basada en la Constitución de 1991 ====== */
+function generateConstitutionMCQ(nq){
+  // Banco de preguntas ABC (A,B,C) con respuesta correcta indexada (0..2)
+  const base = [
+    {
+      q: "¿Qué es la Constitución Política de Colombia?",
+      options: [
+        "La ley suprema que define el Estado, derechos, deberes y la convivencia.",
+        "Un conjunto de códigos civiles que regulan únicamente contratos.",
+        "Un decreto presidencial que cambia cada cuatro años."
+      ],
+      correct: 0
+    },
+    {
+      q: "¿En qué año fue promulgada la actual Constitución colombiana?",
+      options: ["1991","1986","2001"],
+      correct: 0
+    },
+    {
+      q: "Una de sus funciones principales es:",
+      options: [
+        "Organizar el poder público y definir funciones de sus ramas.",
+        "Fijar exclusivamente los aranceles aduaneros.",
+        "Otorgar licencias de conducción."
+      ],
+      correct: 0
+    },
+    {
+      q: "¿Qué mecanismo de protección de derechos fundamentales establece?",
+      options: ["La acción de tutela","El plebiscito obligatorio anual","El habeas pecuniae"],
+      correct: 0
+    },
+    {
+      q: "La Constitución de 1991 define a Colombia como:",
+      options: ["Un Estado Social de Derecho","Un Estado unitario absolutista","Una confederación monárquica"],
+      correct: 0
+    },
+    {
+      q: "¿Qué rasgo democrático fortalece la Constitución de 1991?",
+      options: ["La democracia participativa","La democracia exclusivamente representativa","La eliminación de elecciones locales"],
+      correct: 0
+    },
+    {
+      q: "Sobre la diversidad en Colombia, la Constitución:",
+      options: [
+        "Reconoce y protege la diversidad étnica y cultural.",
+        "La limita a expresiones folklóricas oficiales.",
+        "La condiciona a aprobación del Congreso cada año."
+      ],
+      correct: 0
+    },
+    {
+      q: "¿Qué sistema penal establece la Constitución de 1991?",
+      options: ["Sistema acusatorio con Fiscalía General de la Nación","Sistema inquisitivo controlado por alcaldías","Sistema mixto dirigido por la Defensoría del Pueblo"],
+      correct: 0
+    },
+    {
+      q: "¿Cuál NO es una función principal indicada por la Constitución?",
+      options: [
+        "Fijar la política monetaria del Banco de la República en detalle.",
+        "Proteger derechos fundamentales y su defensa.",
+        "Determinar deberes de ciudadanos y del Estado."
+      ],
+      correct: 0
+    },
+    {
+      q: "Como marco legal, la Constitución:",
+      options: [
+        "Es la ley fundamental que rige las demás leyes.",
+        "Es una guía opcional para autoridades locales.",
+        "Solo aplica en periodos de emergencia."
+      ],
+      correct: 0
+    },
+    {
+      q: "La organización del Estado según la Constitución incluye:",
+      options: [
+        "Estructurar ramas del poder y el Ministerio Público.",
+        "Asignar presupuesto familiar de los ciudadanos.",
+        "Nombrar rectores de universidades privadas."
+      ],
+      correct: 0
+    },
+    {
+      q: "La acción de tutela sirve para:",
+      options: [
+        "Proteger de forma inmediata derechos fundamentales.",
+        "Solicitar descuentos tributarios automáticos.",
+        "Autorizar exportaciones sin requisitos."
+      ],
+      correct: 0
+    }
+  ];
+
+  // Mezclar y cortar según "nq"
+  const shuffled = shuffle(base.slice());
+  const selected = shuffled.slice(0, Math.max(1, Math.min(nq, base.length)));
+
+  // Aleatorizar orden de opciones por pregunta
+  return selected.map(item => {
+    const order = shuffle([0,1,2]);
+    return {
+      id: uid(),
+      q: item.q,
+      options: order.map(i => item.options[i]),
+      correct: order.indexOf(item.correct)
+    };
+  });
+}
+
+/* ====== Utilidades adicionales ====== */
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+/* ====== Render del examen ====== */
+function renderExam(){
+  const quiz = document.getElementById('quiz');
+  const empty = document.getElementById('empty');
+  const actions = document.getElementById('actions');
+  const result = document.getElementById('result');
+
+  quiz.innerHTML = '';
+  result.style.display = 'none';
+  if(!currentExam.questions.length){
+    empty.style.display='block'; quiz.style.display='none'; actions.style.display='none';
+    return;
+  }
+  empty.style.display='none'; quiz.style.display='grid'; actions.style.display='flex';
+
+  currentExam.questions.forEach((q, idx)=>{
+    const card = document.createElement('div');
+    card.className = 'qcard';
+    card.dataset.qid = q.id;
+    card.innerHTML = `
+      <div class="qtext">${esc(q.q)}</div>
+      <div class="opts">
+        ${q.options.map((op, i)=>`
+          <label class="opt">
+            <input type="radio" name="q_${q.id}" value="${i}"/>
+            <span><b>${['A','B','C'][i]}.</b> ${esc(op)}</span>
+          </label>
+        `).join('')}
+      </div>
+      <div class="legend">Selecciona una opción.</div>
+    `;
+    quiz.appendChild(card);
+  });
+}
+
+/* ====== Corrección y feedback ====== */
+document.getElementById('btnDone').addEventListener('click', ()=>{
+  if(!currentExam.questions.length) return;
+  const quiz = document.getElementById('quiz');
+  const cards = Array.from(quiz.querySelectorAll('.qcard'));
+  let corrects = 0;
+
+  cards.forEach(card=>{
+    const qid = card.dataset.qid;
+    const q = currentExam.questions.find(x=>x.id===qid);
+    const chosen = card.querySelector(`input[name="q_${qid}"]:checked`);
+    const chosenIdx = chosen ? parseInt(chosen.value,10) : -1;
+
+    card.querySelectorAll('.opt').forEach(el=>el.classList.remove('correct','wrong'));
+    if(chosen){
+      const lab = chosen.closest('.opt');
+      if(chosenIdx === q.correct){ lab.classList.add('correct'); corrects++; }
+      else { lab.classList.add('wrong'); }
+    }
+    const correctInput = card.querySelectorAll(`input[name="q_${qid}"]`)[q.correct];
+    if(correctInput){ correctInput.closest('.opt').classList.add('correct'); }
+
+    const leg = card.querySelector('.legend');
+    if(chosenIdx === q.correct) { leg.textContent = '✔️ Correcto'; }
+    else if (chosenIdx === -1)  { leg.textContent = '⚠️ Sin respuesta'; }
+    else                        { leg.textContent = `✖ Incorrecto. La correcta es ${['A','B','C'][q.correct]}.`; }
+  });
+
+  const total = currentExam.questions.length;
+  const result = document.getElementById('result');
+  result.style.display = 'block';
+  result.innerHTML = `Resultado: <b>${corrects}/${total}</b> (${Math.round(corrects*100/total)}%)`;
+  toast('Examen corregido');
+});
+
+/* ====== Reiniciar ====== */
+document.getElementById('btnReset').addEventListener('click', ()=>{
+  if(!currentExam.questions.length) return;
+  renderExam();
+  toast('Respuestas reiniciadas');
+});
+
+/* ====== Guardar en Recursos (ec_examenes) ====== */
+document.getElementById('btnSave').addEventListener('click', ()=>{
+  if(!currentExam.questions.length) return;
+  const materia  = document.getElementById('materia').value.trim() || currentExam.materia || 'Examen';
+  const semestre = document.getElementById('semestre').value || '';
+  const title = `${materia} — Simulacro (${currentExam.questions.length} preg.)`;
+  const preview = currentExam.questions[0]?.q || 'Examen generado';
+
+  const store = read(EXAM_KEY);
+  store.push({
+    id: uid(),
+    titulo: title,
+    materia,
+    semestre,
+    preguntas: currentExam.questions.length,
+    preview,
+    fecha: new Date().toISOString(),
+    contenido: currentExam.questions
+  });
+  write(EXAM_KEY, store);
+  toast('Examen guardado en Recursos');
+});
+</script>
+</body>
+</html>
+

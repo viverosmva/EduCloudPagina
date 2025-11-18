@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EduCloud — Gestionar Materiales</title>
+<style>
+  :root{
+    --bg1:#f0f4ff; --bg2:#e8f0fe; --pri:#1e3a8a; --pri2:#3b82f6; --acc:#ef4444;
+    --ok:#10b981; --warn:#f59e0b; --mut:#64748b; --ink:#1e293b; --card:#ffffff; --ring:rgba(59,130,246,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:linear-gradient(135deg,var(--bg1),var(--bg2));color:var(--ink)}
+  .top{position:sticky;top:0;z-index:10;background:linear-gradient(135deg,var(--pri) 0%, var(--pri2) 100%);color:#fff; display:flex; align-items:center; justify-content:space-between;padding:16px 20px; box-shadow:0 4px 18px rgba(0,0,0,.12);}
+  .brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:20px}
+  .logo{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#ef4444,#dc2626);border:3px solid #fff}
+  .crumbs{opacity:.9;font-weight:500}
+  .actions{display:flex;gap:8px}
+  .btn{border:none;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:600;transition:transform .06s ease, box-shadow .2s ease; display:inline-flex;align-items:center;gap:8px}
+  .btn.white{background:#fff;color:var(--pri)}
+  .btn.ghost{background:#f1f5f9}
+  .btn.primary{background:linear-gradient(135deg,var(--pri2),var(--pri)); color:#fff}
+  .btn.success{background:linear-gradient(135deg,var(--ok),#059669); color:#fff}
+  .btn.warn{background:linear-gradient(135deg,#fca5a5,#ef4444); color:#fff}
+
+  .wrap{max-width:1200px;margin:28px auto;padding:0 16px 40px}
+  .card{background:var(--card);border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.08);border:3px solid transparent}
+  .card:hover{border-color:#dbeafe}
+  .h1{font-size:28px;font-weight:800;color:var(--pri);margin-bottom:10px}
+  .p{color:var(--mut);}
+
+  .toolbar{display:flex;flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; margin:8px 0}
+  .filters{display:flex; gap:10px; flex-wrap:wrap}
+  select,input[type="search"]{border:2px solid #e5e7eb;border-radius:12px;padding:10px 12px;outline:none}
+  select:focus,input[type="search"]:focus{border-color:#93c5fd; box-shadow:0 0 0 4px var(--ring)}
+
+  .materials{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-top:12px}
+  .mat{background:#fff;border:2px solid #e5e7eb;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+  .mat:hover{border-color:#bfdbfe; box-shadow:0 8px 24px rgba(59,130,246,.12)}
+  .title{font-weight:800;color:#0f172a}
+  .meta{font-size:12px;color:#64748b;display:flex;flex-wrap:wrap;gap:8px}
+  .chip{background:#f1f5f9;border-radius:999px;padding:4px 8px}
+  .small{font-size:12px;color:#64748b}
+  .row-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-weight:700;font-size:12px}
+  .badge.info{background:#eff6ff;color:#1e40af}
+  .statbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+  .stat{background:#fff;border:2px solid #e5e7eb;border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:8px}
+  .empty{border:2px dashed #e5e7eb;border-radius:16px;padding:24px;text-align:center;color:#64748b}
+  dialog{border:none;border-radius:16px;padding:0;overflow:hidden;box-shadow:0 18px 60px rgba(0,0,0,.25)}
+  .dlg{padding:18px;background:#fff;min-width:320px}
+</style>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">☁</div>
+      <div>
+        <div>EduCloud</div>
+        <div class="crumbs small" aria-label="migas">Panel docente › Gestionar materiales</div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn white" onclick="location.href='indice_profesor.html'">⟵ Volver</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="card">
+      <h1 class="h1">Gestionar materiales</h1>
+    
+
+      <div class="toolbar">
+        <div class="filters">
+          <select id="f-carrera"><option value="">Todas las carreras</option></select>
+          <select id="f-semestre" disabled><option value="">Todos los semestres</option></select>
+          <select id="f-materia" disabled><option value="">Todas las materias</option></select>
+          <input id="f-text" type="search" placeholder="Buscar por título/autor…">
+        </div>
+        <span class="badge info" id="who">Sesión: —</span>
+      </div>
+
+      <div class="statbar">
+        <div class="stat">📁 <b id="stat-size">0</b> archivos</div>
+        <div class="stat">🧑 Último autor: <span id="stat-last">—</span></div>
+      </div>
+
+      <section id="materials" class="materials" style="min-height:160px"></section>
+      <div id="empty" class="empty" style="display:none">No hay materiales que coincidan con el filtro.</div>
+    </div>
+  </main>
+
+  <!-- Renombrar -->
+  <dialog id="dlgRename">
+    <div class="dlg">
+      <h4>Renombrar material</h4>
+      <div class="row" style="margin-top:10px">
+        <div>
+          <label for="newTitle">Nuevo nombre</label>
+          <input id="newTitle" type="text" />
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;padding:12px 0 4px">
+        <button class="btn ghost" type="button" onclick="closeRename()">Cancelar</button>
+        <button class="btn success" type="button" onclick="confirmRename()">Guardar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    /* ===== Sesión ===== */
+    const SESSION_KEY='educloud_session';
+    function getSession(){ try { return JSON.parse(localStorage.getItem(SESSION_KEY)||'null'); } catch { return null; } }
+    const SESSION=getSession();
+    document.getElementById('who').textContent = SESSION ? `Sesión: ${SESSION.nombre} (${SESSION.rol||'estudiante'})` : 'Sesión: —';
+
+    /* ===== IndexedDB (blobs) ===== */
+    const IDB_NAME='EduCloudFiles', IDB_STORE='files';
+    function openDB(){ return new Promise((res,rej)=>{ const r=indexedDB.open(IDB_NAME,1);
+      r.onupgradeneeded=e=>{ const db=e.target.result; if(!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE,{keyPath:'id'}); };
+      r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); });
+    }
+    async function getFile(id){ const db=await openDB(); return new Promise((res,rej)=>{ const tx=db.transaction(IDB_STORE,'readonly'); const req=tx.objectStore(IDB_STORE).get(id); req.onsuccess=()=>res(req.result||null); req.onerror=()=>rej(req.error); });}
+    async function deleteFile(id){ const db=await openDB(); return new Promise((res,rej)=>{ const tx=db.transaction(IDB_STORE,'readwrite'); tx.objectStore(IDB_STORE).delete(id); tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error); });}
+    async function viewMat(id){ const rec=await getFile(id); if(!rec||!rec.blob){ toast('Archivo no disponible'); return; } const url=URL.createObjectURL(rec.blob); window.open(url,'_blank'); setTimeout(()=>URL.revokeObjectURL(url),60000);}
+    async function downloadMat(id,name){ const rec=await getFile(id); if(!rec||!rec.blob){ toast('Archivo no disponible'); return; } const url=URL.createObjectURL(rec.blob); const a=document.createElement('a'); a.href=url; a.download=name?decodeURIComponent(name):(rec.name||'archivo'); document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),10000);}
+
+    /* ===== Metadatos ===== */
+    const LSK='educloud_materials';
+    function loadMaterials(){ try { return JSON.parse(localStorage.getItem(LSK)||'[]'); } catch { return []; } }
+    function persist(list){ localStorage.setItem(LSK, JSON.stringify(list)); }
+    let materials = loadMaterials();
+
+    /* ===== Catálogo para filtros (mismo que Subir) ===== */
+    const DB = {
+      carreras:[{ id:'sis', nombre:'Ingeniería de Sistemas', semestres:[
+        {n:1,materias:[]},{n:2,materias:[]},{n:3,materias:[]},{n:4,materias:[]},{n:5,materias:[]},{n:6,materias:[]},
+        {n:7,materias:[
+          {id:'investigacion-operaciones',nombre:'Investigación de Operaciones'},
+          {id:'sistemas-operativos',nombre:'Sistemas Operativos'},
+          {id:'diseno-productos-innovacion-ti',nombre:'Diseño de Productos e Innovación en TI'},
+          {id:'electiva-disciplinar-ii',nombre:'Electiva Disciplinar II'},
+          {id:'constitucion-politica',nombre:'Constitución Política'},
+          {id:'ingenieria-economica',nombre:'Ingeniería Económica'}
+        ]},
+        {n:8,materias:[]},{n:9,materias:[]},{n:10,materias:[]}
+      ]}]
+    };
+
+    const $ = s=>document.querySelector(s);
+    function escapeHTML(str){ return (str||'').replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[s])); }
+    function pad(n){ return n<10?('0'+n):n; }
+    function formatDate(iso){ const d=new Date(iso); return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+
+    const fCarrera=$('#f-carrera'), fSemestre=$('#f-semestre'), fMateria=$('#f-materia'), fText=$('#f-text');
+    function populateCarreras(){ DB.carreras.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.nombre; fCarrera.appendChild(o); }); }
+    function populateSemestres(cid){
+      fSemestre.innerHTML='<option value="">Todos los semestres</option>';
+      const car=DB.carreras.find(c=>c.id===cid); if(!car){ fSemestre.disabled=true; return; }
+      car.semestres.forEach(s=>{ const o=document.createElement('option'); o.value=String(s.n); o.textContent='Semestre '+s.n; fSemestre.appendChild(o); });
+      fSemestre.disabled=false;
+    }
+    function populateMaterias(cid,sem){
+      fMateria.innerHTML='<option value="">Todas las materias</option>';
+      const car=DB.carreras.find(c=>c.id===cid); if(!car){ fMateria.disabled=true; return; }
+      const s=car.semestres.find(x=>String(x.n)===String(sem)); if(!s){ fMateria.disabled=true; return; }
+      s.materias.forEach(m=>{ const o=document.createElement('option'); o.value=m.id; o.textContent=m.nombre; fMateria.appendChild(o); });
+      fMateria.disabled=false;
+    }
+    populateCarreras();
+
+    fCarrera.addEventListener('change',()=>{ if(fCarrera.value){ populateSemestres(fCarrera.value); } else { fSemestre.innerHTML='<option value="">Todos los semestres</option>'; fSemestre.disabled=true; } fMateria.innerHTML='<option value="">Todas las materias</option>'; fMateria.disabled=true; render(); });
+    fSemestre.addEventListener('change',()=>{ if(fSemestre.value){ populateMaterias(fCarrera.value,fSemestre.value); } else { fMateria.innerHTML='<option value="">Todas las materias</option>'; fMateria.disabled=true; } render(); });
+    fMateria.addEventListener('change',render);
+    fText.addEventListener('input',render);
+
+    function canEdit(m){
+      if (!SESSION) return false;
+      if ((SESSION.rol || '').toLowerCase() === 'superadmin') return true;
+      return m.uploaderEmail && SESSION.email && m.uploaderEmail === SESSION.email;
+    }
+
+    // ===== Renombrar =====
+    let renameId=null;
+    function openRename(id){
+      const m=materials.find(x=>x.id===id); if(!m) return;
+      if(!canEdit(m)){ toast('No puedes renombrar este material'); return; }
+      renameId=id; document.getElementById('newTitle').value=m.titulo; document.getElementById('dlgRename').showModal();
+    }
+    function closeRename(){ document.getElementById('dlgRename').close(); renameId=null; }
+    function confirmRename(){
+      const m=materials.find(x=>x.id===renameId); if(!m) return;
+      if(!canEdit(m)){ toast('No puedes renombrar este material'); return; }
+      const v=document.getElementById('newTitle').value.trim(); if(!v){ toast('Pon un nombre válido'); return; }
+      m.titulo=v; persist(materials); closeRename(); render(); toast('Nombre actualizado');
+    }
+
+    async function removeMat(id){
+      const i=materials.findIndex(x=>x.id===id); if(i<0) return;
+      const m=materials[i];
+      if(!canEdit(m)){ toast('No puedes eliminar este material'); return; }
+      if(!confirm('¿Eliminar material?')) return;
+      materials.splice(i,1); persist(materials);
+      await deleteFile(id);
+      render(); toast('Eliminado');
+    }
+
+    function render(){
+      const cont = document.getElementById('materials');
+      cont.innerHTML='';
+      const query=(fText.value||'').toLowerCase();
+
+      const filtered = materials.filter(m=>{
+        if(fCarrera.value && m.carreraId!==fCarrera.value) return false;
+        if(fSemestre.value && String(m.semestre)!==String(fSemestre.value)) return false;
+        if(fMateria.value && m.materiaId!==fMateria.value) return false;
+        if(query && !(`${m.titulo} ${m.autor}`.toLowerCase().includes(query))) return false;
+        return true;
+      }).sort((a,b)=> new Date(b.fechaISO)-new Date(a.fechaISO));
+
+      document.getElementById('stat-size').textContent = materials.length;
+      document.getElementById('stat-last').textContent = materials[0]?.autor || '—';
+      document.getElementById('empty').style.display = filtered.length ? 'none' : 'block';
+
+      for(const m of filtered){
+        const ext=(m.filename.split('.').pop()||'').toUpperCase();
+        const sizeMB=(m.size/1024/1024).toFixed(2);
+        const el=document.createElement('article'); el.className='mat';
+        el.innerHTML=`
+          <div class="title">${escapeHTML(m.titulo)}</div>
+          <div class="meta">
+            <span class="chip">${escapeHTML(m.carreraNombre)}</span>
+            <span class="chip">Sem ${m.semestre}</span>
+            <span class="chip">${escapeHTML(m.materiaNombre)}</span>
+            <span class="chip">${ext || 'FILE'} · ${sizeMB} MB</span>
+          </div>
+          <div class="small">${formatDate(m.fechaISO)} · Autor: ${escapeHTML(m.autor||'—')}</div>
+          <div class="small">Subido por: ${escapeHTML(m.uploaderName||'—')} <span class="chip" title="${escapeHTML(m.uploaderEmail||'—')}">${escapeHTML((m.uploaderEmail||'—').split('@')[0])}</span></div>
+          <div class="row-actions">
+            <button class="btn white" onclick="downloadMat('${m.id}','${encodeURIComponent(m.filename)}')">⬇ Descargar</button>
+            <button class="btn primary" onclick="viewMat('${m.id}')">👁 Ver</button>
+            <button class="btn success" ${canEdit(m)?'':'disabled'} onclick="openRename('${m.id}')">✏ Renombrar</button>
+            <button class="btn warn" ${canEdit(m)?'':'disabled'} onclick="removeMat('${m.id}')">🗑 Eliminar</button>
+          </div>
+        `;
+        cont.appendChild(el);
+      }
+    }
+
+    function toast(msg){
+      const el=document.createElement('div');
+      el.className='badge info';
+      el.style.position='fixed'; el.style.right='16px'; el.style.bottom='16px'; el.style.boxShadow='0 10px 30px rgba(0,0,0,.12)';
+      el.textContent=msg; document.body.appendChild(el);
+      setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(), 300)}, 1800);
+    }
+
+    document.addEventListener('DOMContentLoaded', render);
+  </script>
+</body>
+</html>

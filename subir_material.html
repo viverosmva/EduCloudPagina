@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduCloud — Subir Material</title>
+  <style>
+    :root{
+      --bg1:#f0f4ff; --bg2:#e8f0fe; --pri:#1e3a8a; --pri2:#3b82f6; --acc:#ef4444;
+      --ok:#10b981; --warn:#f59e0b; --mut:#64748b; --ink:#1e293b; --card:#ffffff;
+      --ring:rgba(59,130,246,.35);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{
+      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background:linear-gradient(135deg,var(--bg1) 0%,var(--bg2) 100%);
+      color:var(--ink);
+    }
+
+    /* Top bar */
+    .top{position:sticky;top:0;z-index:10;background:linear-gradient(135deg,var(--pri) 0%, var(--pri2) 100%);color:#fff; display:flex; align-items:center; justify-content:space-between;padding:16px 20px; box-shadow:0 4px 18px rgba(0,0,0,.12);}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:20px}
+    .logo{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#ef4444,#dc2626);border:3px solid #fff}
+    .crumbs{opacity:.9;font-weight:500}
+    .actions{display:flex;gap:8px}
+    .btn{border:none;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:600;transition:transform .06s ease, box-shadow .2s ease; display:inline-flex;align-items:center;gap:8px}
+    .btn:active{transform:translateY(1px)}
+    .btn.light{background:rgba(255,255,255,.12);color:#fff}
+    .btn.white{background:#fff;color:var(--pri)}
+
+    /* Layout */
+    .wrap{max-width:1200px;margin:28px auto;padding:0 20px 60px}
+    .h1{font-size:32px;font-weight:800;color:var(--pri);}
+    .p{color:var(--mut);margin-top:6px}
+
+    .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:28px;margin-top:24px}
+    @media (max-width: 1024px){.grid{grid-template-columns:1fr}}
+
+    .card{background:var(--card);border-radius:18px;padding:22px;box-shadow:0 10px 30px rgba(0,0,0,.08);border:3px solid transparent}
+    .card:hover{border-color:#dbeafe}
+    .card h3{font-size:18px;margin-bottom:14px;color:var(--ink)}
+
+    /* Form */
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+    .row-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+    @media (max-width:760px){.row,.row-3,.row-4{grid-template-columns:1fr}}
+
+    label{font-size:13px;font-weight:700;color:#334155;display:block;margin:6px 2px}
+    select,input[type="text"],textarea{
+      width:100%; padding:12px 12px; border-radius:12px; border:2px solid #e5e7eb; background:#fff; color:#0f172a;
+      outline:none; transition:border .2s, box-shadow .2s
+    }
+    select:focus, input[type="text"]:focus, textarea:focus{border-color:#93c5fd; box-shadow:0 0 0 4px var(--ring)}
+    textarea{min-height:100px;resize:vertical}
+
+    .hint{font-size:12px;color:#6b7280;margin-top:6px}
+
+    /* Dropzone */
+    .drop{border:2.5px dashed #c7d2fe; border-radius:16px; padding:22px; text-align:center; background:linear-gradient(180deg,#ffffff, #f8fafc);}
+    .drop.drag{border-color:#818cf8; box-shadow:0 0 0 6px rgba(129,140,248,.18)}
+    .drop .big{font-size:42px;margin-bottom:6px}
+
+    .btn.primary{background:linear-gradient(135deg,var(--pri2),var(--pri)); color:#fff}
+    .btn.success{background:linear-gradient(135deg,var(--ok),#059669); color:#fff}
+
+    .toolbar{display:flex;flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; margin:12px 0 2px}
+    .filters{display:flex; gap:10px; flex-wrap:wrap}
+
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-weight:700;font-size:12px}
+    .badge.ok{background:#ecfdf5;color:#065f46}
+    .badge.info{background:#eff6ff;color:#1e40af}
+
+    /* Table / gallery */
+    .materials{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:14px}
+    .mat{background:#fff;border:2px solid #e5e7eb;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;}
+    .mat:hover{border-color:#bfdbfe; box-shadow:0 8px 24px rgba(59,130,246,.12)}
+    .mat .title{font-weight:800;color:#0f172a}
+    .meta{font-size:12px;color:#64748b;display:flex;flex-wrap:wrap;gap:8px}
+    .meta .chip{background:#f1f5f9;border-radius:999px;padding:4px 8px}
+    .mat .row-actions{display:flex;gap:8px;margin-top:4px}
+    .small{font-size:12px}
+
+    .empty{border:2px dashed #e5e7eb;border-radius:16px;padding:24px;text-align:center;color:#64748b}
+
+    .statbar{display:flex;gap:10px;flex-wrap:wrap}
+    .stat{background:#fff;border:2px solid #e5e7eb;border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:8px}
+
+    /* Dialog */
+    dialog{border:none;border-radius:16px;padding:0;overflow:hidden;box-shadow:0 18px 60px rgba(0,0,0,.25)}
+    .dlg{padding:18px;background:#fff;min-width:320px}
+    .dlg h4{margin-bottom:8px}
+    .dlg .row{margin-top:6px}
+
+    /* Toast */
+    .toast{position:fixed;right:16px;bottom:16px;display:grid;gap:8px;z-index:100}
+    .toast .t{background:#fff;border-left:6px solid var(--pri2);padding:10px 12px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.12)}
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">☁</div>
+      <div>
+        <div>EduCloud</div>
+        <div class="crumbs small" aria-label="migas">Panel docente › Subir material</div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn white" onclick="location.href='indice_profesor.html'">⟵ Volver</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <h1 class="h1">Subir material 📤</h1>
+    <p class="p">Selecciona carrera, semestre y materia, agrega un archivo <span class="small"></span>.</p>
+
+    <section class="grid" aria-label="formulario y vista previa">
+      <!-- FORM -->
+      <div class="card" id="form-card">
+        <h3>Formulario</h3>
+        <div class="row-3" style="margin-top:6px">
+          <div>
+            <label for="carrera">Carrera</label>
+            <select id="carrera" required></select>
+          </div>
+          <div>
+            <label for="semestre">Semestre</label>
+            <select id="semestre" required disabled></select>
+          </div>
+          <div>
+            <label for="materia">Materia</label>
+            <select id="materia" required disabled></select>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <div>
+            <label for="titulo">Nombre del material</label>
+            <input id="titulo" type="text" placeholder="Ej. Guía de ejercicios semana 3" />
+            <div class="hint">Si lo dejas vacío, usamos el nombre del archivo.</div>
+          </div>
+          <div>
+            <label for="autor">Autor</label>
+            <input id="autor" type="text" placeholder="Ej. Prof. María García" value="" />
+          </div>
+        </div>
+
+        <div style="margin-top:10px">
+          <label for="desc">Descripción (opcional)</label>
+          <textarea id="desc" placeholder="Breve contexto del material"></textarea>
+        </div>
+
+        <div style="margin-top:14px">
+          <div id="drop" class="drop" tabindex="0" role="region" aria-label="Zona para subir archivo">
+            <div class="big">📎</div>
+            <div><b>Arrastra y suelta</b> un archivo aquí o</div>
+            <div style="margin-top:8px"><button class="btn primary" id="pick" type="button">Elegir archivo</button></div>
+            <input type="file" id="file" hidden />
+            <div class="hint" id="file-hint">Tipos sugeridos: PDF, PPT, DOCX, imágenes, ZIP (máx. ~50MB)</div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn success" id="save" type="button">Guardar material</button>
+          <button class="btn" type="button" onclick="resetForm()">Limpiar</button>
+          <span class="badge info" id="preview-badge" style="display:none">Archivo listo para subir</span>
+        </div>
+      </div>
+
+      <!-- LIST + FILTERS -->
+      <div class="card" id="list-card">
+        <div class="toolbar">
+          <h3 style="margin:0">Materiales (vista)
+            <span class="badge ok" id="stat-count">0 items</span>
+          </h3>
+          <div class="filters">
+            <select id="f-carrera"><option value="">Todas las carreras</option></select>
+            <select id="f-semestre" disabled><option value="">Todos los semestres</option></select>
+            <select id="f-materia" disabled><option value="">Todas las materias</option></select>
+          </div>
+        </div>
+        <div class="statbar" style="margin-top:8px">
+          <div class="stat">📁 <b id="stat-size">0</b> archivos</div>
+          <div class="stat">🧑‍🏫 Último autor: <span id="stat-last">—</span></div>
+        </div>
+        <div id="materials" class="materials" style="min-height:120px; margin-top:12px"></div>
+        <div id="empty" class="empty" style="display:none">Aún no hay materiales. ¡Sube el primero! 🎉</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Dialog: Renombrar -->
+  <dialog id="dlgRename">
+    <div class="dlg">
+      <h4>Renombrar material</h4>
+      <div class="row" style="margin-top:10px">
+        <div>
+          <label for="newTitle">Nuevo nombre</label>
+          <input id="newTitle" type="text" />
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;padding:12px 0 4px">
+        <button class="btn" type="button" onclick="closeRename()">Cancelar</button>
+        <button class="btn success" type="button" onclick="confirmRename()">Guardar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    /* ===== Sesión (para marcar quién sube) ===== */
+    const SESSION_KEY = 'educloud_session';
+    function getSession(){ try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch { return null; } }
+    const SESSION = getSession();
+    // Precarga el autor con el nombre de sesión si existe
+    (function primeAutor(){
+      const input = document.getElementById('autor');
+      if (SESSION?.nombre) input.value = SESSION.nombre;
+      else input.value = 'Docente';
+    })();
+
+    /* ===== IndexedDB helper (persistencia de blobs) ===== */
+    const IDB_NAME = 'EduCloudFiles';
+    const IDB_STORE = 'files';
+
+    function openDB(){
+      return new Promise((resolve, reject)=>{
+        const req = indexedDB.open(IDB_NAME, 1);
+        req.onupgradeneeded = (e)=>{
+          const db = e.target.result;
+          if(!db.objectStoreNames.contains(IDB_STORE)){
+            db.createObjectStore(IDB_STORE, { keyPath: 'id' });
+          }
+        };
+        req.onsuccess = ()=> resolve(req.result);
+        req.onerror = ()=> reject(req.error);
+      });
+    }
+
+    async function putFile(record){
+      const db = await openDB();
+      return new Promise((resolve, reject)=>{
+        const tx = db.transaction(IDB_STORE, 'readwrite');
+        tx.oncomplete = ()=> resolve();
+        tx.onerror = ()=> reject(tx.error);
+        tx.objectStore(IDB_STORE).put(record);
+      });
+    }
+
+    async function getFile(id){
+      const db = await openDB();
+      return new Promise((resolve, reject)=>{
+        const tx = db.transaction(IDB_STORE, 'readonly');
+        tx.oncomplete = ()=>{};
+        tx.onerror = ()=> reject(tx.error);
+        const req = tx.objectStore(IDB_STORE).get(id);
+        req.onsuccess = ()=> resolve(req.result || null);
+        req.onerror = ()=> reject(req.error);
+      });
+    }
+
+    async function deleteFile(id){
+      const db = await openDB();
+      return new Promise((resolve, reject)=>{
+        const tx = db.transaction(IDB_STORE, 'readwrite');
+        tx.oncomplete = ()=> resolve();
+        tx.onerror = ()=> reject(tx.error);
+        tx.objectStore(IDB_STORE).delete(id);
+      });
+    }
+
+    async function blobUrlFor(id){
+      const rec = await getFile(id);
+      if(!rec || !rec.blob) return null;
+      return URL.createObjectURL(rec.blob);
+    }
+
+    /* ===== “Base de datos” de metadatos (localStorage) ===== */
+    const DB = {
+      carreras: [
+        {
+          id: 'sis',
+          nombre: 'Ingeniería de Sistemas',
+          semestres: [
+            { n: 1, materias: [] },
+            { n: 2, materias: [] },
+            { n: 3, materias: [] },
+            { n: 4, materias: [] },
+            { n: 5, materias: [] },
+            { n: 6, materias: [] },
+            { n: 7, materias: [
+              { id:'investigacion-operaciones', nombre:'Investigación de Operaciones' },
+              { id:'sistemas-operativos', nombre:'Sistemas Operativos' },
+              { id:'diseno-productos-innovacion-ti', nombre:'Diseño de Productos e Innovación en TI' },
+              { id:'electiva-disciplinar-ii', nombre:'Electiva Disciplinar II' },
+              { id:'constitucion-politica', nombre:'Constitución Política' },
+              { id:'ingenieria-economica', nombre:'Ingeniería Económica' }
+            ]},
+            { n: 8, materias: [] },
+            { n: 9, materias: [] },
+            { n: 10, materias: [] }
+          ]
+        }
+      ]
+    };
+
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+    const elCarrera = $('#carrera');
+    const elSemestre = $('#semestre');
+    const elMateria = $('#materia');
+
+    const fCarrera = $('#f-carrera');
+    const fSemestre = $('#f-semestre');
+    const fMateria = $('#f-materia');
+
+    const elFile = $('#file');
+    const elDrop = $('#drop');
+    const elPick = $('#pick');
+    const elSave = $('#save');
+
+    const LSK = 'educloud_materials';
+    let materials = loadMaterials();
+    let pendingFile = null; // File
+
+    function loadMaterials(){
+      try { return JSON.parse(localStorage.getItem(LSK) || '[]'); } catch { return []; }
+    }
+    function persist(){ localStorage.setItem(LSK, JSON.stringify(materials)); }
+
+    function populateCarreras(select, withBlank=true){
+      if(withBlank) select.innerHTML = '<option value="">Selecciona…</option>';
+      DB.carreras.forEach(c=>{
+        const opt = document.createElement('option');
+        opt.value = c.id; opt.textContent = c.nombre; select.appendChild(opt);
+      });
+    }
+    function populateSemestres(carreraId, select, withBlank=true){
+      select.innerHTML = withBlank? '<option value="">Selecciona…</option>':'';
+      const car = DB.carreras.find(c=>c.id===carreraId);
+      if(!car){ select.disabled = true; return; }
+      car.semestres.forEach(s=>{
+        const opt = document.createElement('option');
+        opt.value = String(s.n); opt.textContent = 'Semestre '+s.n; select.appendChild(opt);
+      });
+      select.disabled = false;
+    }
+    function populateMaterias(carreraId, semestre, select, withBlank=true){
+      select.innerHTML = withBlank? '<option value="">Selecciona…</option>':'';
+      const car = DB.carreras.find(c=>c.id===carreraId);
+      if(!car){ select.disabled = true; return; }
+      const sem = car.semestres.find(s=>String(s.n)===String(semestre));
+      if(!sem){ select.disabled = true; return; }
+      sem.materias.forEach(m=>{
+        const opt = document.createElement('option');
+        opt.value = m.id; opt.textContent = m.nombre; select.appendChild(opt);
+      });
+      select.disabled = false;
+    }
+
+    // Initial
+    populateCarreras(elCarrera);
+    populateCarreras(fCarrera,false);
+    refreshFiltersState();
+    renderList();
+
+    // Cascadas (form)
+    elCarrera.addEventListener('change', e=>{
+      const id = e.target.value; populateSemestres(id, elSemestre); elMateria.innerHTML=''; elMateria.disabled=true;
+    });
+    elSemestre.addEventListener('change', e=>{
+      const s = e.target.value; populateMaterias(elCarrera.value, s, elMateria);
+    });
+
+    // Cascadas (filtros)
+    fCarrera.addEventListener('change', ()=>{
+      const id = fCarrera.value;
+      if(id){ populateSemestres(id, fSemestre,false); }
+      else { fSemestre.innerHTML='<option value="">Todos los semestres</option>'; fSemestre.disabled=true; }
+      fMateria.innerHTML='<option value="">Todas las materias</option>'; fMateria.disabled=true; renderList();
+    });
+    fSemestre.addEventListener('change', ()=>{
+      const id = fCarrera.value; const s = fSemestre.value;
+      if(s){ populateMaterias(id, s, fMateria, false); }
+      else { fMateria.innerHTML='<option value="">Todas las materias</option>'; fMateria.disabled=true; }
+      renderList();
+    });
+    fMateria.addEventListener('change', renderList);
+
+    function refreshFiltersState(){
+      fSemestre.disabled = !fCarrera.value; fMateria.disabled = !fSemestre.value;
+    }
+
+    // Dropzone
+    elPick.addEventListener('click', ()=> elFile.click());
+    elDrop.addEventListener('dragover', ev=>{ ev.preventDefault(); elDrop.classList.add('drag'); });
+    elDrop.addEventListener('dragleave', ()=> elDrop.classList.remove('drag'));
+    elDrop.addEventListener('drop', ev=>{ ev.preventDefault(); elDrop.classList.remove('drag'); handleFiles(ev.dataTransfer.files); });
+    elFile.addEventListener('change', ()=> handleFiles(elFile.files));
+
+    function handleFiles(fileList){
+      if(!fileList || !fileList.length) return;
+      const f = fileList[0];
+      if(f.size > 52 * 1024 * 1024){ toast('El archivo supera 52MB'); return; }
+      pendingFile = f; $('#preview-badge').style.display = 'inline-flex';
+      $('#file-hint').textContent = `${f.name} • ${(f.size/1024/1024).toFixed(2)} MB`;
+    }
+
+    // Guardar
+    elSave.addEventListener('click', async ()=>{
+      if(!elCarrera.value) return toast('Selecciona la carrera');
+      if(!elSemestre.value) return toast('Selecciona el semestre');
+      if(!elMateria.value) return toast('Selecciona la materia');
+      if(!pendingFile) return toast('Adjunta un archivo');
+
+      const car = DB.carreras.find(c=>c.id===elCarrera.value);
+      const sem = elSemestre.value;
+      const mat = (car.semestres.find(s=>String(s.n)===String(sem))||{materias:[]}).materias.find(m=>m.id===elMateria.value);
+
+      const now = new Date();
+      const id = 'm_'+now.getTime();
+
+      // 1) Guardar blob en IndexedDB
+      await putFile({
+        id,
+        blob: pendingFile,
+        name: pendingFile.name,
+        type: pendingFile.type || 'application/octet-stream',
+        size: pendingFile.size,
+        createdAt: now.toISOString()
+      });
+
+      // 2) Guardar metadatos en localStorage + sesión
+      const item = {
+        id,
+        carreraId: car.id, carreraNombre: car.nombre,
+        semestre: Number(sem),
+        materiaId: mat?.id || elMateria.value, materiaNombre: mat?.nombre || 'Materia',
+        titulo: ($('#titulo').value || pendingFile.name).trim(),
+        descripcion: $('#desc').value.trim(),
+        autor: ($('#autor').value || SESSION?.nombre || 'Docente'),
+        uploaderEmail: SESSION?.email || 'anon',
+        uploaderName: SESSION?.nombre || ($('#autor').value || 'Docente'),
+        filename: pendingFile.name,
+        size: pendingFile.size,
+        type: pendingFile.type || 'application/octet-stream',
+        fechaISO: now.toISOString()
+      };
+      materials.unshift(item);
+      persist();
+
+      toast('Material guardado');
+      resetForm();
+      renderList();
+    });
+
+    function resetForm(){
+      $('#titulo').value=''; $('#autor').value= SESSION?.nombre || 'Docente'; $('#desc').value='';
+      elCarrera.value=''; elSemestre.innerHTML=''; elSemestre.disabled=true; elMateria.innerHTML=''; elMateria.disabled=true;
+      pendingFile=null; $('#preview-badge').style.display='none'; $('#file-hint').textContent='Tipos sugeridos: PDF, PPT, DOCX, imágenes, ZIP (máx. ~50MB)'; elFile.value='';
+    }
+
+    // RENDER
+    function renderList(){
+      const cont = $('#materials');
+      cont.innerHTML = '';
+      const filtered = materials.filter(m=>{
+        if(fCarrera.value && m.carreraId!==fCarrera.value) return false;
+        if(fSemestre.value && String(m.semestre)!==String(fSemestre.value)) return false;
+        if(fMateria.value && m.materiaId!==fMateria.value) return false;
+        return true;
+      });
+
+      $('#stat-count').textContent = `${filtered.length} items`;
+      $('#stat-size').textContent = materials.length;
+      $('#stat-last').textContent = materials[0]?.autor || '—';
+
+      $('#empty').style.display = filtered.length? 'none':'block';
+
+      for(const m of filtered){
+        const card = document.createElement('article'); card.className='mat';
+        const ext = (m.filename.split('.').pop()||'').toUpperCase();
+        const sizeMB = (m.size/1024/1024).toFixed(2);
+        card.innerHTML = `
+          <div class="title">${escapeHTML(m.titulo)}</div>
+          <div class="meta">
+            <span class="chip">${escapeHTML(m.carreraNombre)}</span>
+            <span class="chip">Sem ${m.semestre}</span>
+            <span class="chip">${escapeHTML(m.materiaNombre)}</span>
+            <span class="chip">${ext || 'FILE'} · ${sizeMB} MB</span>
+          </div>
+          <p class="small" style="color:#475569; margin-top:4px">${escapeHTML(m.descripcion || '')}</p>
+          <div class="small" style="color:#64748b">${formatDate(m.fechaISO)} · ${escapeHTML(m.autor)}</div>
+          <div class="row-actions">
+            <button class="btn white" onclick="downloadMat('${m.id}', '${encodeURIComponent(m.filename)}')">⬇ Descargar</button>
+            <button class="btn light" onclick="viewMat('${m.id}')">👁 Ver</button>
+            <button class="btn" onclick="openRename('${m.id}')">✏ Renombrar</button>
+            <button class="btn" onclick="removeMat('${m.id}')">🗑 Eliminar</button>
+          </div>
+        `;
+        cont.appendChild(card);
+      }
+    }
+
+    // Ver / Descargar usando IndexedDB
+    async function viewMat(id){
+      const url = await blobUrlFor(id);
+      if(!url){ toast('Archivo no disponible'); return; }
+      window.open(url, '_blank');
+      setTimeout(()=>URL.revokeObjectURL(url), 60_000);
+    }
+    async function downloadMat(id, suggestedName){
+      const rec = await getFile(id);
+      if(!rec || !rec.blob){ toast('Archivo no disponible'); return; }
+      const url = URL.createObjectURL(rec.blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = decodeURIComponent(suggestedName || rec.name || 'archivo');
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 10_000);
+    }
+
+    function preview(id){ viewMat(id); } // compat
+
+    async function removeMat(id){
+      if(!confirm('¿Eliminar material?')) return;
+      const i = materials.findIndex(m=>m.id===id);
+      if(i>-1){
+        materials.splice(i,1);
+        persist();
+        await deleteFile(id);
+        renderList();
+        toast('Eliminado');
+      }
+    }
+
+    // ===== Renombrar =====
+    let renameId = null;
+    function openRename(id){
+      renameId = id; const m = materials.find(x=>x.id===id); if(!m) return;
+      $('#newTitle').value = m.titulo;
+      $('#dlgRename').showModal();
+    }
+    function closeRename(){ $('#dlgRename').close(); renameId=null; }
+    function confirmRename(){
+      const m = materials.find(x=>x.id===renameId); if(!m) return;
+      const val = $('#newTitle').value.trim(); if(!val) return toast('Pon un nombre válido');
+      m.titulo = val; persist(); closeRename(); renderList(); toast('Nombre actualizado');
+    }
+
+    // Utils
+    function toast(msg){
+      const host = $('#toast'); const el = document.createElement('div'); el.className='t'; el.textContent = msg; host.appendChild(el);
+      setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(), 300)}, 1800);
+    }
+    function pad(n){ return n<10? '0'+n : n; }
+    function formatDate(iso){
+      const d = new Date(iso);
+      return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+    function escapeHTML(str){
+      return (str||'').replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;","\">":"&gt;","\"":"&quot;","'":"&#039;"}[s]));
+    }
+
+    // Accesibilidad: ENTER/espacio sobre drop => abrir selector
+    elDrop.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); elFile.click(); }});
+  </script>
+</body>
+</html>

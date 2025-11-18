@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduCloud - Programas</title>
+  <style>
+    :root{
+      --primary:#1e3a8a;
+      --accent:#3b82f6;
+      --ink:#0f172a;
+      --muted:#64748b;
+      --card:#ffffff;
+      --panel:#f8fafc;
+      --ring:#e5e7eb;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{
+      font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;
+      background:linear-gradient(135deg,var(--primary),var(--accent));
+      color:var(--ink);
+    }
+    .wrap{max-width:980px;margin:28px auto;padding:0 16px 40px}
+    .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;color:#fff}
+    .top h1{font-size:24px;font-weight:800;letter-spacing:.2px}
+    .back{
+      border:none;background:#fff;color:var(--primary);
+      padding:10px 16px;border-radius:12px;font-weight:700;cursor:pointer;
+      transition:.25s;box-shadow:0 6px 18px rgba(0,0,0,.15)
+    }
+    .back:hover{transform:translateX(-3px);background:#e0e7ff}
+
+    .card{background:var(--card);border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,.15);overflow:hidden}
+    details{background:#fff}
+    details + details{border-top:1px solid var(--ring)}
+    summary{
+      list-style:none;cursor:pointer;padding:18px 20px;font-weight:800;color:var(--primary);
+      display:flex;align-items:center;justify-content:space-between;user-select:none
+    }
+    summary::-webkit-details-marker{display:none}
+    .row{display:flex;align-items:center;gap:10px}
+    .tag{width:10px;height:10px;border-radius:3px;background:var(--accent);box-shadow:0 0 0 3px #eff6ff inset}
+    .sub{font-size:13px;color:var(--muted);font-weight:600;margin-left:8px}
+    .chev{
+      width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;
+      border-radius:8px;background:#eff6ff;color:var(--accent);
+      transform:rotate(0deg);transition:.25s;font-weight:900
+    }
+    details[open] > summary .chev{transform:rotate(90deg)}
+    .panel{background:var(--panel);border-top:1px solid var(--ring);padding:18px 16px 22px}
+    .sem{background:#fff;border:1px solid var(--ring);border-radius:12px;overflow:hidden}
+    .sem + .sem{margin-top:12px}
+    .sem summary{padding:14px 16px;color:var(--accent);font-weight:800}
+    .subjects{
+      padding:12px;display:grid;gap:10px;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      background:#f8fbff
+    }
+    .subj{
+      background:#fff;border:1px solid var(--ring);border-left:4px solid var(--accent);
+      border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;transition:.2s
+    }
+    .subj:hover{transform:translateY(-2px);background:#ffffff}
+    .subj h4{color:var(--primary);font-size:15px;line-height:1.25}
+    .meta{font-size:12px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}
+    .open{
+      margin-top:6px;align-self:flex-start;border:none;
+      background:linear-gradient(135deg,var(--accent),var(--primary));
+      color:#fff;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700;font-size:13px;
+      box-shadow:0 6px 16px rgba(59,130,246,.35);transition:.2s
+    }
+    .open:hover{transform:translateY(-2px)}
+    @media (max-width:600px){
+      .top h1{font-size:20px}
+      summary{font-size:16px}
+    }
+    .empty{text-align:center;color:#muted;font-size:14px;padding:10px}
+
+    /* Mini-lista de materiales */
+    .mats{margin-top:6px;display:grid;gap:6px}
+    .mat{
+      background:#fff;border:1px solid var(--ring);border-radius:10px;padding:8px;
+      display:flex;align-items:center;justify-content:space-between;gap:8px
+    }
+    .mat .t{font-weight:700;font-size:13px;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:58%}
+    .mat .a{display:flex;gap:6px}
+    .mat .btn{
+      border:none;border-radius:8px;padding:6px 8px;cursor:pointer;font-weight:700;font-size:12px;
+      background:#eff6ff;color:#1e3a8a
+    }
+    .count{background:#eef2ff;color:#3730a3;border-radius:999px;padding:2px 8px;font-weight:800;font-size:11px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1>Programas</h1>
+      <button class="back" type="button" onclick="goBack()">← Volver </button>
+      <noscript><a href="indice-profesor.html" class="back" style="text-decoration:none;display:inline-block">← Volver al Panel</a></noscript>
+    </div>
+
+    <div class="card" id="programas"></div>
+  </div>
+
+<script>
+/* ===== Back verdaderamente robusto ===== */
+(function primeLastUrl(){
+  try { if (document.referrer) sessionStorage.setItem('lastUrl', document.referrer); } catch(_) {}
+})();
+function goBack(){
+  let navigated = false;
+  const onHide = () => { navigated = true; };
+  window.addEventListener('pagehide', onHide, { once:true });
+  history.back();
+  setTimeout(() => {
+    if (!navigated) {
+      const ref = document.referrer || sessionStorage.getItem('lastUrl');
+      if (ref && ref !== location.href) { location.href = ref; }
+      else { location.href = 'indice-profesor.html'; }
+    }
+  }, 400);
+}
+
+/* ========= Datos de programas ========= */
+const programas = [
+  {
+    nombre: "Ingeniería de Sistemas",
+    semestres: 10,
+    plan: [
+      { sem: 1, subjects: [["Matemáticas Básicas",3],["Lógica Matemática",2],["Introducción a la Programación",3],["Introducción a la Ingeniería de Sistemas",4],["Filosofía Institucional",2],["Lecto-Escritura",2]]},
+      { sem: 2, subjects: [["Cálculo Diferencial",3],["Física y Laboratorio I",3],["Matemáticas Discretas",3],["Programación de Computadores",3],["Electiva Socio-Humanística",2],["Inglés I",2]]},
+      { sem: 3, subjects: [["Cálculo Integral",3],["Álgebra Lineal",3],["Física y Laboratorio II",3],["Programación en Entornos Gráficos",3],["Electiva Recreativa",2],["Inglés II",2]]},
+      { sem: 4, subjects: [["Cálculo de Varias Variables",3],["Física y Laboratorio III",3],["Análisis Numérico",3],["Estructuras de Información",3],["Teoría de Base de Datos",3],["Ingeniería de Software",3],["Inglés III",2]]},
+      { sem: 5, subjects: [["Ecuaciones Diferenciales",3],["Probabilidad y Estadística",3],["Programación Avanzada",3],["Base de Datos I",3],["Ingeniería de Requisitos",3],["Inglés IV",2]]},
+      { sem: 6, subjects: [["Modelamiento Matemático",3],["Electiva de Programación",3],["Electiva Disciplinar I",3],["Base de Datos II",3],["Ingeniería de Control de Calidad",3],["Emprendimiento",2]]},
+      { sem: 7, subjects: [
+        ["Investigación de Operaciones",3],
+        ["Sistemas Operativos",4],
+        ["Diseño de Productos e Innovación en TI",3],
+        ["Electiva Disciplinar II",3],
+        ["Constitución Política",2],
+        ["Ingeniería Económica",3]
+      ]},
+      { sem: 8, subjects: [["Investigación I",2],["Telemática I",3],["Electiva Disciplinar III",3],["Electiva Interdisciplinar I",3],["Ética Profesional",3],["Procesos Administrativos",3]]},
+      { sem: 9, subjects: [["Investigación II",2],["Telemática II",3],["Electiva Disciplinar IV",3],["Electiva Interdisciplinar II",3],["Auditoría de Sistemas",3],["Gerencia y Gestión de Proyectos",2]]},
+      { sem:10, subjects: [["Investigación III",4],["Práctica Profesional",6]]}
+    ]
+  },
+  { nombre: "Licenciatura en Educación Infantil", semestres: 0, plan: [] },
+  { nombre: "Derecho", semestres: 0, plan: [] }
+];
+
+/* ====== Utilidades ====== */
+const LSK='educloud_materials';
+function loadMaterials(){ try { return JSON.parse(localStorage.getItem(LSK)||'[]'); } catch { return []; } }
+function escapeHTML(str){ return (str||'').replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;","&gt;":"&gt;","\"":"&quot;","'":"&#039;"}[s])); }
+
+/* ===== Helpers de archivos persistidos (IndexedDB) ===== */
+const educloudFiles = (()=>{
+  const IDB_NAME='EduCloudFiles', STORE='files';
+  function openDB(){
+    return new Promise((res,rej)=>{
+      const r = indexedDB.open(IDB_NAME,1);
+      r.onupgradeneeded = e=>{
+        const db=e.target.result;
+        if(!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE,{keyPath:'id'});
+      };
+      r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);
+    });
+  }
+  async function getFile(id){
+    const db = await openDB();
+    return new Promise((res,rej)=>{
+      const tx=db.transaction(STORE,'readonly');
+      const req=tx.objectStore(STORE).get(id);
+      req.onsuccess=()=>res(req.result||null);
+      req.onerror=()=>rej(req.error);
+    });
+  }
+  async function view(id){
+    const rec = await getFile(id);
+    if(!rec||!rec.blob){ alert('Archivo no disponible'); return; }
+    const url = URL.createObjectURL(rec.blob);
+    window.open(url,'_blank');
+    setTimeout(()=>URL.revokeObjectURL(url), 60000);
+  }
+  async function download(id, suggested){
+    const rec = await getFile(id);
+    if(!rec||!rec.blob){ alert('Archivo no disponible'); return; }
+    const url = URL.createObjectURL(rec.blob);
+    const a=document.createElement('a');
+    a.href=url; a.download= suggested ? decodeURIComponent(suggested) : (rec.name||'archivo');
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 10000);
+  }
+  return { view, download };
+})();
+
+/* ===== Materiales por (programa, semestre, materia) ===== */
+function recentBy(programaNombre, semestreNum, materiaNombre){
+  // Mapea plan → ids usados en Subir Material
+  const mapMateriaId = (prog, sem, matName) => {
+    if (prog === "Ingeniería de Sistemas" && sem === 7){
+      const m = {
+        "Investigación de Operaciones":"investigacion-operaciones",
+        "Sistemas Operativos":"sistemas-operativos",
+        "Diseño de Productos e Innovación en TI":"diseno-productos-innovacion-ti",
+        "Electiva Disciplinar II":"electiva-disciplinar-ii",
+        "Constitución Política":"constitucion-politica",
+        "Ingeniería Económica":"ingenieria-economica"
+      }[matName];
+      return m || null;
+    }
+    // Para otras materias podrías resolver por nombre exacto si usaste el mismo nombre al subir:
+    return null; // usamos coincidencia por nombre si no hay id
+  };
+
+  const all = loadMaterials();
+  const materiaId = mapMateriaId(programaNombre, semestreNum, materiaNombre);
+
+  return all
+    .filter(m=>{
+      if (m.carreraNombre !== programaNombre) return false;
+      if (String(m.semestre) !== String(semestreNum)) return false;
+      // Coincidir por id si existe, si no, por nombre visible
+      if (materiaId) return m.materiaId === materiaId;
+      return (m.materiaNombre || '').toLowerCase() === (materiaNombre || '').toLowerCase();
+    })
+    .sort((a,b)=> new Date(b.fechaISO) - new Date(a.fechaISO));
+}
+
+/* ========= Render ========= */
+function renderProgramas(){
+  const container = document.getElementById('programas');
+  container.innerHTML = '';
+
+  programas.forEach(prog => {
+    const details = document.createElement('details');
+
+    const summary = document.createElement('summary');
+    summary.innerHTML = `
+      <span class="row">
+        <span class="tag"></span>
+        <span>🎓 ${prog.nombre}</span>
+        <span class="sub">${prog.semestres ? prog.semestres + ' semestres' : 'Sin información académica'}</span>
+      </span>
+      <span class="chev">▶</span>
+    `;
+
+    const panel = document.createElement('div');
+    panel.className = 'panel';
+
+    if (prog.plan.length > 0) {
+      const contSem = document.createElement('div');
+      prog.plan.forEach(({sem, subjects})=>{
+        const semDetail = document.createElement('details');
+        semDetail.className = 'sem';
+
+        const semSummary = document.createElement('summary');
+        semSummary.innerHTML = `<span class="row"><span class="tag"></span><span>Semestre ${sem}</span></span><span class="chev">▶</span>`;
+
+        const semPanel = document.createElement('div');
+        semPanel.className = 'panel';
+
+        const grid = document.createElement('div');
+        grid.className = 'subjects';
+
+        subjects.forEach(([name, credits])=>{
+          const subj = document.createElement('div');
+          subj.className = 'subj';
+
+          // Leer materiales para este (programa, semestre, materia)
+          const mats = recentBy(prog.nombre, sem, name);
+          const countTxt = `${mats.length} material${mats.length===1?'':'es'}`;
+
+          // Construir mini lista (máx 3) — usando IndexedDB para ver/descargar
+          let listHTML = '';
+          if (mats.length){
+            const top3 = mats.slice(0,3);
+            listHTML = `<div class="mats">
+              ${top3.map(m=>`
+                <div class="mat">
+                  <div class="t" title="${escapeHTML(m.titulo)}">${escapeHTML(m.titulo)}</div>
+                  <div class="a">
+                    <button class="btn" onclick="educloudFiles.view('${m.id}')">Ver</button>
+                    <button class="btn" onclick="educloudFiles.download('${m.id}','${encodeURIComponent(m.filename)}')">Descargar</button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>`;
+          } else {
+            listHTML = `<div class="mats" style="color:#64748b;font-size:12px">Sin materiales aún</div>`;
+          }
+
+          subj.innerHTML = `
+            <h4>${name}</h4>
+            <div class="meta">
+              <span>Créditos: ${credits}</span>
+              <span class="count" title="Materiales subidos">${countTxt}</span>
+            </div>
+            ${listHTML}
+            <button class="open" data-prog="${prog.nombre}" data-sem="${sem}" data-name="${encodeURIComponent(name)}">Abrir carpeta</button>
+          `;
+          grid.appendChild(subj);
+        });
+
+        semPanel.appendChild(grid);
+        semDetail.appendChild(semSummary);
+        semDetail.appendChild(semPanel);
+        contSem.appendChild(semDetail);
+      });
+      panel.appendChild(contSem);
+    } else {
+      const empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.textContent = 'Este programa aún no tiene materias registradas.';
+      panel.appendChild(empty);
+    }
+
+    details.appendChild(summary);
+    details.appendChild(panel);
+    container.appendChild(details);
+  });
+
+  // Delegación: abrir carpeta → dirigir a HTML correcto
+  container.addEventListener('click', (e) => {
+    const btn = e.target.closest('.open');
+    if (!btn) return;
+
+    const prog = btn.dataset.prog;
+    const sem = parseInt(btn.dataset.sem, 10);
+    const name = decodeURIComponent(btn.dataset.name);
+
+    // Caso especial: Ing. de Sistemas sem 7 → mapea a archivos específicos
+    if (prog === "Ingeniería de Sistemas" && sem === 7) {
+      const map = {
+        "Investigación de Operaciones": "IO.html",
+        "Sistemas Operativos": "SisOper.html",
+        "Diseño de Productos e Innovación en TI": "DisenoInno.html",
+        "Electiva Disciplinar II": "Disciplinar2.html",
+        "Constitución Política": "Constitucion.html",
+        "Ingeniería Económica": "IngEcon.html"
+      };
+      const destino = map[name];
+      if (destino) { window.location.href = destino; return; }
+    }
+
+    // General
+    localStorage.setItem('programa_actual', prog);
+    localStorage.setItem('semestre_actual', sem);
+    localStorage.setItem('materia_actual', name);
+    const url = `asignatura.html?prog=${encodeURIComponent(prog)}&sem=${sem}&mat=${encodeURIComponent(name)}`;
+    window.location.href = url;
+  });
+}
+
+document.addEventListener('DOMContentLoaded', renderProgramas);
+</script>
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduCloud - Dashboard Docente</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:linear-gradient(135deg,#f0f4ff 0%,#e8f0fe 100%);min-height:100vh}
+
+    /* Top */
+    .top-bar{background:linear-gradient(135deg,#1e3a8a 0%,#3b82f6 100%);color:#fff;padding:20px 40px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 15px rgba(0,0,0,.1)}
+    .logo-section{display:flex;align-items:center;gap:15px}
+    .logo-small{display:flex;align-items:center;gap:12px;font-size:24px;font-weight:700}
+    .logo-icon{width:40px;height:40px;background:linear-gradient(135deg,#ef4444,#dc2626);border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid #fff;font-size:18px}
+
+    /* botón perfil (top derecha) como link */
+    .user-link{display:flex;align-items:center;gap:15px;padding:8px 15px;border-radius:25px;text-decoration:none;color:#fff;transition:background .3s}
+    .user-link:hover{background:rgba(255,255,255,.1)}
+    .user-avatar{width:45px;height:45px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;border:2px solid #ef4444}
+    .user-info h3{font-size:16px;font-weight:600}
+    .user-info p{font-size:12px;opacity:.9}
+
+    /* Sidebar */
+    .sidebar{position:fixed;left:-300px;top:0;width:280px;height:100vh;background:#fff;padding:30px 20px;box-shadow:4px 0 15px rgba(0,0,0,.1);transition:left .3s ease;z-index:1000;overflow-y:auto}
+    .sidebar.active{left:0}
+    .sidebar-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px;padding-bottom:20px;border-bottom:2px solid #e2e8f0}
+    .sidebar-header h2{font-size:20px;color:#1e293b}
+    .close-sidebar{background:#ef4444;border:none;color:#fff;width:35px;height:35px;border-radius:8px;cursor:pointer;font-size:20px;transition:all .3s}
+    .close-sidebar:hover{background:#dc2626;transform:rotate(90deg)}
+    .menu-item{display:flex;align-items:center;gap:15px;padding:15px 20px;margin-bottom:10px;border-radius:12px;cursor:pointer;transition:all .3s;font-size:15px;font-weight:500;color:#334155;text-decoration:none}
+    .menu-item:hover{background:linear-gradient(135deg,#eff6ff,#dbeafe);color:#1e3a8a;transform:translateX(5px)}
+    .menu-item.active{background:linear-gradient(135deg,#3b82f6,#1e3a8a);color:#fff;box-shadow:0 4px 12px rgba(59,130,246,.3)}
+    .menu-icon{font-size:22px}
+
+    /* Overlay */
+    .overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);z-index:999;display:none}
+    .overlay.active{display:block}
+
+    /* Content */
+    .content{padding:40px;max-width:1400px;margin:0 auto}
+    .welcome-section{margin-bottom:50px;text-align:center}
+    .welcome-section h1{font-size:36px;color:#1e3a8a;margin-bottom:10px;font-weight:700}
+    .welcome-section p{color:#64748b;font-size:18px}
+    .role-badge{display:inline-block;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;padding:8px 20px;border-radius:25px;font-size:14px;font-weight:600;margin-top:15px}
+
+    .quick-access-title{font-size:24px;color:#1e293b;margin-bottom:25px;font-weight:700}
+    .cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:30px;max-width:1100px;margin:0 auto}
+    .card{display:block;text-decoration:none;color:inherit;background:#fff;border-radius:20px;padding:35px;box-shadow:0 8px 25px rgba(0,0,0,.08);transition:all .3s;border:3px solid transparent;text-align:center}
+    .card:hover{transform:translateY(-10px);box-shadow:0 15px 40px rgba(0,0,0,.15)}
+    .card-1{border-color:#10b981}
+    .card-2{border-color:#3b82f6}
+    .card-3{border-color:#f59e0b}
+    .card-icon{width:80px;height:80px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:40px;margin:0 auto 25px}
+    .card-1 .card-icon{background:linear-gradient(135deg,#10b981,#059669)}
+    .card-2 .card-icon{background:linear-gradient(135deg,#3b82f6,#1e3a8a)}
+    .card-3 .card-icon{background:linear-gradient(135deg,#f59e0b,#d97706)}
+    .card h3{font-size:22px;color:#1e293b;margin-bottom:12px}
+    .card p{color:#64748b;font-size:15px;line-height:1.6}
+
+    @media (max-width:968px){
+      .content{padding:20px}
+      .top-bar{padding:15px 20px}
+      .cards-grid{grid-template-columns:1fr}
+      .user-info{display:none}
+      .welcome-section h1{font-size:28px}
+      .welcome-section p{font-size:16px}
+    }
+  </style>
+</head>
+<body>
+  <!-- ======= GUARD DE SESIÓN/ROL (DOCENTE) ======= -->
+  <script>
+    (function(){
+      const SESSION_KEY = 'educloud_session';
+      function readSession(){
+        try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }
+        catch { return null; }
+      }
+      const s = readSession();
+      if(!s){
+        location.replace('inicio_sesion.html');
+        return;
+      }
+      if(s.rol !== 'docente'){
+        // Si hay sesión pero no es docente, mándalo al panel general
+        location.replace('indice.html');
+        return;
+      }
+      window.EDU_SESSION = s;
+
+      // Fallbacks básicos
+      if(typeof window.logout !== 'function'){
+        window.logout = function(){
+          localStorage.removeItem(SESSION_KEY);
+          location.replace('inicio_sesion.html');
+        };
+      }
+      if(typeof window.goTo !== 'function'){
+        window.goTo = (url)=> location.href = url;
+      }
+    })();
+  </script>
+  <!-- ======= /GUARD ======= -->
+
+  <!-- Overlay -->
+  <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <div class="logo-section">
+      <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+      <div class="logo-small">
+        <div class="logo-icon">☁️</div>
+        <span>EduCloud</span>
+      </div>
+    </div>
+
+    <a class="user-link" href="perfil_profesor.html" id="profileTopLink" aria-label="Ir a mi perfil">
+      <div class="user-info">
+        <h3>Prof. María García</h3>
+        <p>Docente</p>
+      </div>
+      <div class="user-avatar">👩‍🏫</div>
+    </a>
+  </div>
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2>📋 Menú</h2>
+      <button class="close-sidebar" onclick="toggleMenu()">×</button>
+    </div>
+
+    <a class="menu-item active" href="#">
+      <span class="menu-icon">🏠</span><span>Inicio</span>
+    </a>
+    <a class="menu-item" href="subir_material.html">
+      <span class="menu-icon">➕</span><span>Subir Material</span>
+    </a>
+    <a class="menu-item" href="gestionar_material.html">
+      <span class="menu-icon">📂</span><span>Gestionar Materiales</span>
+    </a>
+    <a class="menu-item" href="mis_asignaturas.html">
+      <span class="menu-icon">📚</span><span>Mis Asignaturas</span>
+    </a>
+    <a class="menu-item" href="perfil_profesor.html">
+      <span class="menu-icon">👤</span><span>Mi Perfil</span>
+    </a>
+  </nav>
+
+  <!-- Content -->
+  <main class="content" onclick="closeMenuIfOpen(event)">
+    <div class="welcome-section">
+      <h1>¡Bienvenida, Profesora María! 👋</h1>
+      <p>Panel de control para docentes</p>
+      <span class="role-badge">👩‍🏫 Docente</span>
+    </div>
+
+    <h2 class="quick-access-title">⚡ Accesos Rápidos</h2>
+
+    <div class="cards-grid">
+      <a class="card card-1" href="subir_material.html">
+        <div class="card-icon">➕</div>
+        <h3>Subir Material</h3>
+        <p>Sube nuevo contenido educativo para tus estudiantes: documentos y más.</p>
+      </a>
+
+      <a class="card card-2" href="gestionar_material.html">
+        <div class="card-icon">📂</div>
+        <h3>Gestionar Materiales</h3>
+        <p>Administra, edita o elimina los materiales que has compartido con tus asignaturas.</p>
+      </a>
+
+      <a class="card card-3" href="mis_asignaturas.html">
+        <div class="card-icon">📚</div>
+        <h3>Mis Asignaturas</h3>
+        <p>Consulta las materias que impartes por asignatura.</p>
+      </a>
+    </div>
+  </main>
+
+  <script>
+    function toggleMenu(){
+      const sidebar=document.getElementById('sidebar');
+      const overlay=document.getElementById('overlay');
+      sidebar.classList.toggle('active');
+      overlay.classList.toggle('active');
+    }
+    function closeMenuIfOpen(){
+      const sidebar=document.getElementById('sidebar');
+      const overlay=document.getElementById('overlay');
+      if(sidebar.classList.contains('active')){ sidebar.classList.remove('active'); overlay.classList.remove('active'); }
+    }
+
+    const profileLink = document.getElementById('profileTopLink');
+    profileLink.addEventListener('click', () => {
+      const sidebar=document.getElementById('sidebar');
+      const overlay=document.getElementById('overlay');
+      sidebar.classList.remove('active');
+      overlay.classList.remove('active');
+    });
+
+    document.addEventListener('keydown',e=>{
+      if(e.key==='Escape'){
+        const sidebar=document.getElementById('sidebar');
+        const overlay=document.getElementById('overlay');
+        if(sidebar.classList.contains('active')){ sidebar.classList.remove('active'); overlay.classList.remove('active'); }
+      }
+    });
+  </script>
+</body>
+</html>

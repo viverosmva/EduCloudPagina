@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduCloud - Configuración</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="settings" onload="initConfig()">
+  <div class="header">
+    <div class="header-left">
+      <button class="back-btn" onclick="window.location.href='indice.html'" data-i18n="btn.back">← Volver</button>
+      <h1 data-i18n="settings.title">⚙️ Configuración</h1>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h2 data-i18n="settings.language">Idioma</h2>
+      <select id="langSelect" style="margin-top:10px;padding:10px;border-radius:10px;">
+        <option value="es" data-i18n="settings.lang.es">Español</option>
+        <option value="en" data-i18n="settings.lang.en">Inglés</option>
+      </select>
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+  <script src="js/i18n.js"></script>
+  <script>
+    function initConfig(){
+      const sel=document.getElementById("langSelect");
+      sel.value=i18n.getLang();
+      sel.addEventListener("change",()=>{ i18n.setLang(sel.value); });
+      i18n.auto();
+    }
+  </script>
+</body>
+</html>
+
